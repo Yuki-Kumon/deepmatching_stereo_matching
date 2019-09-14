@@ -16,7 +16,7 @@ import cv2
 
 class Feature_value():
     '''
-    2つのパッチ間の特徴量を計算
+    特徴マップを計算する
     '''
 
     def __init__(self, feature_name='cv2.TM_CCOEFF_NORMED'):
@@ -30,4 +30,4 @@ class Feature_value():
 
     def __call__(self, img, template):
         res = cv2.matchTemplate(img, template, self.method)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+        return res
