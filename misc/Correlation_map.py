@@ -31,9 +31,9 @@ class Correlation_map():
     deepmatchingみたいにピラミッド状の特徴マップを作成する
     '''
 
-    def __init__(self, img, template, window_size=3, co_map_height=3, feature_name='cv2.TM_CCOEFF_NORMED'):
+    def __init__(self, img, template, window_size=3, co_map_height=5, feature_name='cv2.TM_CCOEFF_NORMED'):
         if img.shape != template.shape:
-            print('use same size images!')
+            print('use same size images!(サイズが違うと悲しい気持ちになるので(そのうち対応したいですね))')
             sys.exit()
         self.img = img
         self.template = template
@@ -85,6 +85,12 @@ class Correlation_map():
                 co_map[i - self.exclusive_pix, j - self.exclusive_pix] = co_here
         self.co_map = co_map
 
+    def _aggregation(self):
+        '''
+        aggregation to make upper class co_map
+        '''
+        pass
+
 
 if __name__ == '__main__':
     """
@@ -92,8 +98,8 @@ if __name__ == '__main__':
     run on deepmatching_stereo_matching dir
     """
 
-    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)
-    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)
+    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[:500, :500]
+    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[:500, :500]
 
     cls = Correlation_map(img1, img2)
     cls._create_atomic_patch()
