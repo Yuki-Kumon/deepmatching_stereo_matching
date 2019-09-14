@@ -9,6 +9,8 @@ Last Update :
 """
 
 
+import sys
+
 import numpy as np
 import cv2
 
@@ -29,17 +31,22 @@ class Correlation_map():
     deepmatchingみたいにピラミッド状の特徴マップを作成する
     '''
 
-    def __init__(self, img, template, window_size=3, feature_name='cv2.TM_CCOEFF_NORMED'):
+    def __init__(self, img, template, window_size=3, co_map_height=3, feature_name='cv2.TM_CCOEFF_NORMED'):
+        if img.shape != template.shape:
+            print('use same size images!')
+            sys.exit()
         self.img = img
         self.template = template
         self.window_size = window_size
+        self.co_map_height = co_map_height
 
         self.exclusive_pix = int((window_size - 1) / 2)
+        self.co_map_exclusive = int((co_map_height - 1) / 2)
         self.image_size = [x for x in img.shape]
 
         self.Feature = Feature_value(feature_name=feature_name)
 
-    def create_atomic_patch(self):
+    def _create_atomic_patch(self):
         '''
         重なりありのatomic patchを作成する
         '''
@@ -54,21 +61,29 @@ class Correlation_map():
                 atomic_patch[i - self.exclusive_pix, j - self.exclusive_pix] = \
                     self.img[i - self.exclusive_pix:i + self.exclusive_pix + 1, j - self.exclusive_pix:j + self.exclusive_pix + 1]
 
-        self.atomic_patch = atomic_patch
+        # データ型を符号なし整数に変えておく
+        self.atomic_patch = atomic_patch.astype(np.uint8)
 
-    def create_initial_co_map(self):
+    def _create_initial_co_map(self):
         '''
         初めの相関マップを計算する。
         x方向に長い短冊型にする(y方向に検索する意味はないので)
         '''
-        co_map = np.empty((self.atomic_patch.shape[0], self.atomic_patch.shape[1]))
+        co_map = np.empty((
+            self.atomic_patch.shape[0],
+            self.atomic_patch.shape[1],
+            self.co_map_height,
+            self.atomic_patch.shape[1]
+        ))
 
-        for i in range(self.exclusive_pix, self.image_size[0] - self.exclusive_pix):
+        for i in range(self.exclusive_pix + self.co_map_exclusive, self.image_size[0] - self.exclusive_pix - self.co_map_exclusive):
             for j in range(self.exclusive_pix, self.image_size[1] - self.exclusive_pix):
                 co_here = self.Feature(
-                    self.atomic_patch[i - self.exclusive_pix, j - self.exclusive_pix].astype(np.uint8),
-                    self.template[i - self.exclusive_pix:i + self.exclusive_pix + 1, :]
+                    self.atomic_patch[i - self.exclusive_pix - self.co_map_exclusive, j - self.exclusive_pix],
+                    self.template[i - self.exclusive_pix - self.co_map_exclusive:i + self.exclusive_pix + self.co_map_exclusive + 1, :]
                 )
+                co_map[i - self.exclusive_pix, j - self.exclusive_pix] = co_here
+        self.co_map = co_map
 
 
 if __name__ == '__main__':
@@ -81,5 +96,5 @@ if __name__ == '__main__':
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)
 
     cls = Correlation_map(img1, img2)
-    cls.create_atomic_patch()
-    cls.create_initial_co_map()
+    cls._create_atomic_patch()
+    cls._create_initial_co_map()
