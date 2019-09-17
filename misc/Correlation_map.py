@@ -121,6 +121,7 @@ class Correlation_map():
         map_len_1 = int((map.shape[2]) / 2)
         map_len_2 = int((map.shape[3]) / 2)
         res = np.empty((map.shape[0], map.shape[1], map_len_1, map_len_2))
+
         # max pool
         for i in range(map.shape[0]):
             for j in range(map.shape[1]):
@@ -148,6 +149,26 @@ class Correlation_map():
                 # average
                 output[i, j] = (upper_left_img + upper_right_img + lower_left_img + lower_right_img) / 4
         return output
+
+    def _multi_level_correlation_pyramid(self):
+        '''
+        aggregationを繰り返し、multi-level correlation pyramidを計算する
+        初めの特徴マップはFeatureに依存(現時点では原著と異なりznccを使っている)
+        '''
+
+        # 原著の手順に従ってmulti-level correlation pyramidを計算する
+        co_map_list = []
+        co_map = self.co_map
+        co_map_list.append(co_map)
+        N = 4
+        while N < np.max(self.co_map.shape[:2]):
+            print(N)
+            # aggregation
+            aggregated_map = self._aggregation(co_map)
+            co_map_list.append(aggregated_map)
+            del co_map
+            co_map = aggregated_map
+            N *= 2
 
 
 class Maxpool(nn.Module):
@@ -217,6 +238,5 @@ if __name__ == '__main__':
     cls._create_atomic_patch()
     # cls._create_initial_co_map()
     cls._create_simple_initial_co_map()
-    res = cls._aggregation(cls.co_map)
-    print(res.shape)
+    cls._multi_level_correlation_pyramid()
     # print(cls.co_map.shape)
