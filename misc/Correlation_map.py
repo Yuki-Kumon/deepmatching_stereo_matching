@@ -162,13 +162,13 @@ class Correlation_map():
         co_map_list.append(co_map)
         N = 4
         while N < np.max(self.co_map.shape[:2]):
-            print(N)
             # aggregation
             aggregated_map = self._aggregation(co_map)
             co_map_list.append(aggregated_map)
             del co_map
             co_map = aggregated_map
             N *= 2
+        self.co_map_list = co_map_list
 
 
 class Maxpool(nn.Module):
@@ -186,9 +186,9 @@ if __name__ == '__main__':
     """
     sanity check
     """
-
-    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[:100, :100]
-    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[:100, :100]
+    # atomicな特徴マップが一辺が2^nじゃないとバグるガス実装です。。。
+    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
+    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
 
     """
     hoge = np.random.rand(1, 2, 3, 4)
