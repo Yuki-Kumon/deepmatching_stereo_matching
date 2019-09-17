@@ -116,7 +116,8 @@ class Correlation_map():
         '''
         aggregation to make upper class co_map
         pooling window:3
-        stride:1
+        stride:2
+        この設定は変えない(なぜならつらいから。。。)
         '''
         map_len_1 = int((map.shape[2]) / 2)
         map_len_2 = int((map.shape[3]) / 2)
@@ -160,7 +161,8 @@ class Correlation_map():
         co_map_list = []
         co_map = self.co_map
         co_map_list.append(co_map)
-        N = 4
+        N = 1
+        iteration = 1
         while N < np.max(self.co_map.shape[:2]):
             # aggregation
             aggregated_map = self._aggregation(co_map)
@@ -168,7 +170,23 @@ class Correlation_map():
             del co_map
             co_map = aggregated_map
             N *= 2
+            iteration += 1
         self.co_map_list = co_map_list
+        self.iteration = iteration
+
+    def __call__(self):
+        '''
+        特徴マップの計算までを行う
+        '''
+        self._create_atomic_patch()
+        print('complete to create atomic patch')
+        self._create_simple_initial_co_map()
+        print('complete to create initial correlation map')
+        self._multi_level_correlation_pyramid()
+        print('complete to create multi-level correlation pyramid')
+        print('pyramid level: {}'.format(self.iteration))
+
+        return self.co_map_list
 
 
 class Maxpool(nn.Module):
@@ -186,7 +204,7 @@ if __name__ == '__main__':
     """
     sanity check
     """
-    # atomicな特徴マップが一辺が2^nじゃないとバグるガス実装です。。。
+    # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
     img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
 
@@ -235,8 +253,11 @@ if __name__ == '__main__':
     """
 
     cls = Correlation_map(img1, img2)
+    """
     cls._create_atomic_patch()
     # cls._create_initial_co_map()
     cls._create_simple_initial_co_map()
     cls._multi_level_correlation_pyramid()
+    """
+    hoge = cls()
     # print(cls.co_map.shape)
