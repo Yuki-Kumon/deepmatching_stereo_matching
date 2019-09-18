@@ -11,6 +11,7 @@ Last Update :
 
 import sys
 
+import cv2
 import torch
 import torch.nn as nn
 
@@ -43,16 +44,18 @@ class Matching():
 
         self.obj = Co_obj
 
-    def _update_co_map(self, map, children):
+    def _initial_move_map(self):
         '''
-        14式に従ってパッチ間の類似度を計算する
+        ピラミッドの頂点での動きのマップを計算する
         '''
 
     def _B(self):
         '''
-        原著の14式。。。
+        原著の14式
+        座標はchildrenに合わせる(4倍する)
+        各パッチの左上の座標を用いて計算する
         '''
-        pass
+        N = self.obj.N_map
 
 
 class Zero_padding(nn.Module):
@@ -71,5 +74,17 @@ if __name__ == '__main__':
     """
     sanity check
     """
+    # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
+    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 130, 500:500 + 130]
+    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 130, 500:500 + 130]
 
-    cls = Matching()
+    co_cls = Correlation_map(img1, img2)
+    co_cls()
+
+    # 試しに書き出し
+    """
+    cv2.imwrite('out.png', co_cls.co_map_list[0][0, 0] * 50)
+    cv2.imwrite('here.png', img1)
+    """
+
+    cls = Matching(co_cls)
