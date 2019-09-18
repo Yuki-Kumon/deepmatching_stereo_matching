@@ -173,6 +173,7 @@ class Correlation_map():
             iteration += 1
         self.co_map_list = co_map_list
         self.iteration = iteration
+        self.N_map = N
 
     def __call__(self):
         '''
@@ -184,7 +185,7 @@ class Correlation_map():
         print('complete to create initial correlation map')
         self._multi_level_correlation_pyramid()
         print('complete to create multi-level correlation pyramid')
-        print('pyramid level: {}'.format(self.iteration))
+        print('pyramid level: {}, N={}'.format(self.iteration, self.N_map))
 
         return self.co_map_list
 
