@@ -12,6 +12,7 @@ Last Update :
 import sys
 
 import cv2
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -48,6 +49,8 @@ class Matching():
         '''
         ピラミッドの頂点での動きのマップを計算する
         '''
+        map = np.zeros((3, self.obj.co_map_list[-1].shape[0], self.obj.co_map_list[-1].shape[1]))
+        self.map = map
 
     def _B(self):
         '''
@@ -55,7 +58,10 @@ class Matching():
         座標はchildrenに合わせる(4倍する)
         各パッチの左上の座標を用いて計算する
         '''
+        # Nとiterarionとmapはこの後更新する。N > 0でwhileループで回せばいいと思う
         N = self.obj.N_map
+        idx = self.obj.iteration
+        map_here = self.map
 
 
 class Zero_padding(nn.Module):
@@ -83,8 +89,10 @@ if __name__ == '__main__':
 
     # 試しに書き出し
     """
-    cv2.imwrite('out.png', co_cls.co_map_list[0][0, 0] * 50)
+    cv2.imwrite('out.png', co_cls.co_map_list[1][0, 0] * 50)
+    cv2.imwrite('out0.png', co_cls.co_map_list[0][0, 0] * 50)
     cv2.imwrite('here.png', img1)
     """
 
     cls = Matching(co_cls)
+    cls._initial_move_map()
