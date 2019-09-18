@@ -49,7 +49,9 @@ class Matching():
         '''
         ピラミッドの頂点での動きのマップを計算する
         '''
+        # 各ピクセルに(対応するx, 対応するy, 相関値s)が格納されている
         map = np.zeros((3, self.obj.co_map_list[-1].shape[0], self.obj.co_map_list[-1].shape[1]))
+        # N最大のところで対応する座標を計算(入力を正方形ということにしておけば不要)(そうしたので省略)
         self.map = map
 
     def _B(self):
@@ -62,6 +64,11 @@ class Matching():
         N = self.obj.N_map
         idx = self.obj.iteration
         map_here = self.map
+
+        # mapをゼロパディングする
+
+        len_1 = map_here.shape[1]
+        len_2 = map_here.shape[2]
 
 
 class Zero_padding(nn.Module):
