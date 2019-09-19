@@ -32,7 +32,6 @@ class Matching():
     '''
     multi-level correlation pyramidからマッチングを行う
     原著の14式に従って計算していく
-    ピラミッド上位の類似度を足し算していけば良さそう？
     '''
 
     def __init__(self, Co_obj=None):
@@ -77,18 +76,18 @@ class Matching():
                 # 初めの移動量を計算(これは必要なさそうではある)
                 map[:, i, j] = self._calc_near_match(self.obj.co_map_list[-1], (i, j), map[:2, i, j].astype('int64'))
         self.map = map
+        self.map_idx = -1
 
     def _B(self):
         '''
         原著の14式
-        座標はchildrenに合わせる(4倍する)
         各パッチの左上の座標を用いて計算する
         '''
         # Nとiterarionとmapはこの後更新する。N > 0でwhileループで回せばいいと思う
         N = self.obj.N_map
-        idx = self.obj.iteration
+        map_idx = self.map_idx - 1
         map_here = self.map
-        mmap_updated = np.empty((3, map_here.shape[1] * 2, map_here.shape[2] * 2))
+        map_updated = np.empty((3, map_here.shape[1] * 2, map_here.shape[2] * 2))
 
         # 式中のベクトルo
         o_list = np.array([[1, 1], [0, 1], [1, 0], [0, 0]])
@@ -101,6 +100,21 @@ class Matching():
                 # ここでの相関値を取り出しておく
                 s_here = self.map[2, i, j]
                 # auddrantごとに14式の計算を行い、mapを更新する
+                for o_idx in range(4):
+                    o_here = o_list[o_idx]
+                    p_here = p_upper_left + o_here
+                    p_dot_here = p_dot_upper_left + o_here
+                    # 13式に従い、mを計算、mapを更新する
+                    map_updated[:, p_here[0], p_here[1]] = self._calc_near_match(
+                        self.obj.co_map_list[map_idx],
+                        (p_here[0], p_here[1]),
+                        (p_dot_here[0], p_dot_here[1])
+                    )
+            # 諸々の値を更新
+            self.map_idx -= 1
+            self.N = int(np.sqrt(N))
+            del self.map
+            self.map = map_updated
         """
         len_1 = map_here.shape[1]
         len_2 = map_here.shape[2]
