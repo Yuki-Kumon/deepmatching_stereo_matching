@@ -163,7 +163,7 @@ class Correlation_map():
         co_map_list.append(co_map)
         N = 1
         iteration = 1
-        while N < np.max(self.co_map.shape[:2]):
+        while N < np.min(self.co_map.shape[:2]):
             # aggregation
             aggregated_map = self._aggregation(co_map)
             co_map_list.append(aggregated_map)

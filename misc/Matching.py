@@ -5,7 +5,7 @@ matching on correlation map
 Author :
     Yuki Kumon
 Last Update :
-    2019-09-18
+    2019-09-19
 """
 
 
@@ -50,6 +50,7 @@ class Matching():
     def _calc_near_match(self, co_map, p, p_dot):
         '''
         pとp_dotはco_mapの解像度に合わせた座標
+        p_iとして共に少し4つのchildrenとして移動させた上でこの関数に読ませることにする
         原著の13式に従って対応点を計算する
         13式のmを計算する
         '''
@@ -57,7 +58,12 @@ class Matching():
         map_on_p = co_map[p[0], p[1]]
         # 端対策にゼロパディングする
         map_on_p_padded = self.Padding(torch.from_numpy(map_on_p[None])).numpy()[0]
-
+        # p_dot周辺の3×3を取り出す
+        co_map_near_p_dot = map_on_p_padded[p_dot[0] - 1 + 1:p_dot[0] + 1 + 1, p_dot[1] - 1 + 1:p_dot[1] + 1 + 1]
+        # この中で相関値最大の座標を計算
+        m = np.unravel_index(np.argmax(co_map_near_p_dot), co_map_near_p_dot.shape)
+        # p_dot, 新たな相関値を返す
+        return p_dot[0] + m[0], p_dot[1] + m[1], co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0], p_dot[1]]
 
     def _initial_move_map(self):
         '''
@@ -67,7 +73,9 @@ class Matching():
         map = np.zeros((3, self.obj.co_map_list[-1].shape[0], self.obj.co_map_list[-1].shape[1]))
         for i in range(map.shape[1]):
             for j in range(map.shape[2]):
-                pass
+                map[:2, i, j] = i, j
+                # 初めの移動量を計算
+                map[:, i, j] = self._calc_near_match(self.obj.co_map_list[-1], (i, j), map[:2, i, j].astype('int64'))
         self.map = map
 
     def _B(self):
@@ -94,8 +102,7 @@ class Matching():
                 for index in range(4):
                     o_here = o_list[index]
                     p_here = p + o_here
-                    print(p_here)
-                print(p_dot)
+                    
 
 
 class Zero_padding(nn.Module):
@@ -116,8 +123,8 @@ if __name__ == '__main__':
     sanity check
     """
     # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
-    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 130, 500:500 + 130]
-    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 130, 500:500 + 130]
+    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 66, 500:500 + 258]
+    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 66, 500:500 + 258]
 
     co_cls = Correlation_map(img1, img2)
     co_cls()
