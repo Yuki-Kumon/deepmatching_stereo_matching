@@ -74,7 +74,7 @@ class Matching():
         for i in range(map.shape[1]):
             for j in range(map.shape[2]):
                 map[:2, i, j] = i, j
-                # 初めの移動量を計算
+                # 初めの移動量を計算(これは必要なさそうではある)
                 map[:, i, j] = self._calc_near_match(self.obj.co_map_list[-1], (i, j), map[:2, i, j].astype('int64'))
         self.map = map
 
@@ -88,10 +88,20 @@ class Matching():
         N = self.obj.N_map
         idx = self.obj.iteration
         map_here = self.map
+        mmap_updated = np.empty((3, map_here.shape[1] * 2, map_here.shape[2] * 2))
 
-        # mapをゼロパディングする
-        # map = self.Padding(torch.from_numpy(map_here[i, j][None])).numpy()[0]
+        # 式中のベクトルo
+        o_list = np.array([[1, 1], [0, 1], [1, 0], [0, 0]])
 
+        for i in range(map_here.shape[1]):
+            for j in range(map_here.shape[2]):
+                # 対応するquadrantの一つ上での解像度での座標を計算しておく
+                p_upper_left = np.array([i * 2, j * 2])
+                p_dot_upper_left = (map_here[:2, i, j] * 2).astype('int64')
+                # ここでの相関値を取り出しておく
+                s_here = self.map[2, i, j]
+                # auddrantごとに14式の計算を行い、mapを更新する
+        """
         len_1 = map_here.shape[1]
         len_2 = map_here.shape[2]
         o_list = np.array([[1, 1], [-1, 1], [1, -1], [-1, -1]])
@@ -102,7 +112,7 @@ class Matching():
                 for index in range(4):
                     o_here = o_list[index]
                     p_here = p + o_here
-                    
+        """
 
 
 class Zero_padding(nn.Module):
