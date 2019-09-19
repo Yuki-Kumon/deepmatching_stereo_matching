@@ -44,6 +44,20 @@ class Matching():
             sys.exit()
 
         self.obj = Co_obj
+        self.Padding = Zero_padding()
+        self.Padding.eval()
+
+    def _calc_near_match(self, co_map, p, p_dot):
+        '''
+        pとp_dotはco_mapの解像度に合わせた座標
+        原著の13式に従って対応点を計算する
+        13式のmを計算する
+        '''
+        # pに対応した特徴マップを取り出す
+        map_on_p = co_map[p[0], p[1]]
+        # 端対策にゼロパディングする
+        map_on_p_padded = self.Padding(torch.from_numpy(map_on_p[None])).numpy()[0]
+
 
     def _initial_move_map(self):
         '''
@@ -51,7 +65,9 @@ class Matching():
         '''
         # 各ピクセルに(対応するx, 対応するy, 相関値s)が格納されている
         map = np.zeros((3, self.obj.co_map_list[-1].shape[0], self.obj.co_map_list[-1].shape[1]))
-        # N最大のところで対応する座標を計算(入力を正方形ということにしておけば不要)(そうしたので省略)
+        for i in range(map.shape[1]):
+            for j in range(map.shape[2]):
+                pass
         self.map = map
 
     def _B(self):
@@ -66,9 +82,20 @@ class Matching():
         map_here = self.map
 
         # mapをゼロパディングする
+        # map = self.Padding(torch.from_numpy(map_here[i, j][None])).numpy()[0]
 
         len_1 = map_here.shape[1]
         len_2 = map_here.shape[2]
+        o_list = np.array([[1, 1], [-1, 1], [1, -1], [-1, -1]])
+        for i in range(len_1):
+            for j in range(len_2):
+                p = np.array([2 * i + len_1, 2 * j + len_2])
+                p_dot = [int(2 * map_here[0, i, j]), int(2 * map_here[1, i, j])]
+                for index in range(4):
+                    o_here = o_list[index]
+                    p_here = p + o_here
+                    print(p_here)
+                print(p_dot)
 
 
 class Zero_padding(nn.Module):
@@ -77,6 +104,7 @@ class Zero_padding(nn.Module):
     '''
 
     def __init__(self):
+        super(Zero_padding, self).__init__()
         self.m = nn.ZeroPad2d(1)
 
     def forward(self, x):
@@ -103,3 +131,4 @@ if __name__ == '__main__':
 
     cls = Matching(co_cls)
     cls._initial_move_map()
+    cls._B()
