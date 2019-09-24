@@ -70,29 +70,6 @@ class Correlation_map():
         # データ型を符号なし整数に変えておく
         self.atomic_patch = atomic_patch.astype(np.uint8)
 
-    """
-    def _create_initial_co_map(self):
-        '''
-        初めの相関マップを計算する。
-        x方向に長い短冊型にする(y方向に検索する意味はないので)
-        '''
-        co_map = np.empty((
-            self.atomic_patch.shape[0],
-            self.atomic_patch.shape[1],
-            self.co_map_height,
-            self.atomic_patch.shape[1]
-        ))
-
-        for i in range(self.exclusive_pix + self.co_map_exclusive, self.image_size[0] - self.exclusive_pix - self.co_map_exclusive):
-            for j in range(self.exclusive_pix, self.image_size[1] - self.exclusive_pix):
-                co_here = self.Feature(
-                    self.atomic_patch[i - self.exclusive_pix - self.co_map_exclusive, j - self.exclusive_pix],
-                    self.template[i - self.exclusive_pix - self.co_map_exclusive:i + self.exclusive_pix + self.co_map_exclusive + 1, :]
-                )
-                co_map[i - self.exclusive_pix, j - self.exclusive_pix] = co_here
-        self.co_map = co_map
-    """
-
     def _create_simple_initial_co_map(self):
         '''
         初めの相関マップを計算する。
