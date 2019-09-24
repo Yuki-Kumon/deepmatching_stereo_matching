@@ -29,5 +29,5 @@ class Feature_value():
         self.method = eval(feature_name)
 
     def __call__(self, img, template):
-        res = cv2.matchTemplate(img, template, self.method)
+        res = (cv2.matchTemplate(img, template, self.method) + 1.0) / 2.0
         return res

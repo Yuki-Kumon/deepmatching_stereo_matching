@@ -58,11 +58,15 @@ class Matching():
         # 端対策にゼロパディングする
         map_on_p_padded = self.Padding(torch.from_numpy(map_on_p[None])).numpy()[0]
         # p_dot周辺の3×3を取り出す
-        co_map_near_p_dot = map_on_p_padded[p_dot[0] - 1 + 1:p_dot[0] + 1 + 1, p_dot[1] - 1 + 1:p_dot[1] + 1 + 1]
+        co_map_near_p_dot = map_on_p_padded[p_dot[0] - 1 + 1:p_dot[0] + 2 + 1, p_dot[1] - 1 + 1:p_dot[1] + 2 + 1]
         # この中で相関値最大の座標を計算
         m = np.unravel_index(np.argmax(co_map_near_p_dot), co_map_near_p_dot.shape)
+        # 全部0だった場合の処理(もし最大値がだいたいゼロなら、移動していないとみなす)
+        if np.max(co_map_near_p_dot) < 0.0001:
+            m = [1, 1]
         # p_dot, 新たな相関値を返す
-        return p_dot[0] + m[0], p_dot[1] + m[1], co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0], p_dot[1]]
+        # print(p_dot[0] - 1 + 1, p_dot[0] + 2 + 1, p_dot[1] - 1 + 1, p_dot[1] + 2 + 1, co_map_near_p_dot, co_map_near_p_dot)
+        return p_dot[0] + m[0] - 1, p_dot[1] + m[1] - 1, co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0], p_dot[1]]
 
     def _initial_move_map(self):
         '''
@@ -77,6 +81,7 @@ class Matching():
                 map[:, i, j] = self._calc_near_match(self.obj.co_map_list[-1], (i, j), map[:2, i, j].astype('int64'))
         self.map = map
         self.map_idx = -1
+        self.N = self.obj.N_map
 
     def _B(self):
         '''
@@ -84,7 +89,8 @@ class Matching():
         各パッチの左上の座標を用いて計算する
         '''
         # Nとiterarionとmapはこの後更新する。N > 0でwhileループで回せばいいと思う
-        N = self.obj.N_map
+        # N = self.obj.N_map
+        N = self.N
         map_idx = self.map_idx - 1
         map_here = self.map
         map_updated = np.empty((3, map_here.shape[1] * 2, map_here.shape[2] * 2))
@@ -110,23 +116,22 @@ class Matching():
                         (p_here[0], p_here[1]),
                         (p_dot_here[0], p_dot_here[1])
                     )
-            # 諸々の値を更新
-            self.map_idx -= 1
-            self.N = int(np.sqrt(N))
-            del self.map
-            self.map = map_updated
-        """
-        len_1 = map_here.shape[1]
-        len_2 = map_here.shape[2]
-        o_list = np.array([[1, 1], [-1, 1], [1, -1], [-1, -1]])
-        for i in range(len_1):
-            for j in range(len_2):
-                p = np.array([2 * i + len_1, 2 * j + len_2])
-                p_dot = [int(2 * map_here[0, i, j]), int(2 * map_here[1, i, j])]
-                for index in range(4):
-                    o_here = o_list[index]
-                    p_here = p + o_here
-        """
+                    # print(map_updated[:, p_here[0], p_here[1]])
+        # 諸々の値を更新
+        self.map_idx -= 1
+        self.N = int(N / 2)
+        del self.map
+        self.map = map_updated
+
+    def _calc_match(self):
+        '''
+        原著のB式を繰り返し用いてマッチングを計算する
+        '''
+        # N > 0であれば計算を行う
+        while 1:
+            self._B()
+            if self.N == 1:
+                break
 
 
 class Zero_padding(nn.Module):
@@ -147,19 +152,18 @@ if __name__ == '__main__':
     sanity check
     """
     # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
-    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 66, 500:500 + 258]
-    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 66, 500:500 + 258]
+    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 68, 500:500 + 260]
+    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 68, 500:500 + 260]
 
-    co_cls = Correlation_map(img1, img2)
+    co_cls = Correlation_map(img1, img2, window_size=5)
     co_cls()
 
     # 試しに書き出し
-    """
     cv2.imwrite('out.png', co_cls.co_map_list[1][0, 0] * 50)
     cv2.imwrite('out0.png', co_cls.co_map_list[0][0, 0] * 50)
     cv2.imwrite('here.png', img1)
-    """
 
     cls = Matching(co_cls)
     cls._initial_move_map()
-    cls._B()
+    # cls._B()
+    cls._calc_match()

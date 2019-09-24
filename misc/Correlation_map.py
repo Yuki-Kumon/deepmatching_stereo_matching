@@ -42,6 +42,7 @@ class Correlation_map():
         self.img = img
         self.template = template
         self.window_size = window_size
+        self.lam = 1.4  # rectification
 
         self.exclusive_pix = int((window_size - 1) / 2)
         self.image_size = [x for x in img.shape]
@@ -127,7 +128,6 @@ class Correlation_map():
         for i in range(map.shape[0]):
             for j in range(map.shape[1]):
                 res[i, j] = self.Maxpool(torch.from_numpy(map[i, j][None])).numpy()[0]
-        # print(res.shape)
 
         # shift and average
         output = np.empty((map_len_1, map_len_2, map_len_1, map_len_2))
@@ -139,6 +139,7 @@ class Correlation_map():
                 lower_left = [i * 2 + 1, j * 2]
                 lower_right = [i * 2 + 1, j * 2 + 1]
                 # shift
+                """
                 upper_left_img = np.zeros(res.shape[2:])
                 upper_left_img[1:, 1:] = res[upper_left[0], upper_left[1]][:-1, :-1]
                 upper_right_img = np.zeros(res.shape[2:])
@@ -147,6 +148,12 @@ class Correlation_map():
                 lower_left_img[:-1, 1:] = res[lower_left[0], lower_left[1]][1:, :-1]
                 lower_right_img = np.zeros(res.shape[2:])
                 lower_right_img[:-1, :-1] = res[lower_right[0], lower_right[1]][1:, 1:]
+                """
+                # shiftはpaddingしているので不要
+                upper_left_img = res[upper_left[0], upper_left[1]]
+                upper_right_img = res[upper_right[0], upper_right[1]]
+                lower_left_img = res[lower_left[0], lower_left[1]]
+                lower_right_img = res[lower_right[0], lower_right[1]]
                 # average
                 output[i, j] = (upper_left_img + upper_right_img + lower_left_img + lower_right_img) / 4
         return output
@@ -160,6 +167,7 @@ class Correlation_map():
         # 原著の手順に従ってmulti-level correlation pyramidを計算する
         co_map_list = []
         co_map = self.co_map
+        co_map = self._rectification(co_map)
         co_map_list.append(co_map)
         N = 1
         iteration = 1
@@ -174,6 +182,9 @@ class Correlation_map():
         self.co_map_list = co_map_list
         self.iteration = iteration
         self.N_map = N
+
+    def _rectification(self, map):
+        return map**self.lam
 
     def __call__(self):
         '''
@@ -205,60 +216,14 @@ if __name__ == '__main__':
     """
     sanity check
     """
+
+    """
     # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
     img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
 
-    """
-    hoge = np.random.rand(1, 2, 3, 4)
-
-    print(np.max(hoge.shape[2:]))
-    """
-
-    """
-    # img = torch.from_numpy(np.random.rand(1, 1, 32, 32))
-    Mod = Maxpool()
-    # print(Mod(img).size())
-
-    map = np.random.rand(98, 98, 98, 98)
-    map_len_1 = int((map.shape[2]) / 2)
-    map_len_2 = int((map.shape[3]) / 2)
-    res = np.empty((map.shape[0], map.shape[1], map_len_1, map_len_2))
-    # max pool
-    for i in range(map.shape[0]):
-        for j in range(map.shape[1]):
-            res[i, j] = Mod(torch.from_numpy(map[i, j][None])).numpy()[0]
-    # print(res.shape)
-
-    # shift and average
-    output = np.empty((map_len_1, map_len_2, map_len_1, map_len_2))
-    for i in range(map_len_1):
-        for j in range(map_len_2):
-            # 平均を取る対象のインデックスを計算しておく
-            upper_left = [i * 2, j * 2]
-            upper_right = [i * 2, j * 2 + 1]
-            lower_left = [i * 2 + 1, j * 2]
-            lower_right = [i * 2 + 1, j * 2 + 1]
-            # shift
-            upper_left_img = np.zeros(res.shape[2:])
-            upper_left_img[1:, 1:] = res[upper_left[0], upper_left[1]][:-1, :-1]
-            upper_right_img = np.zeros(res.shape[2:])
-            upper_right_img[1:, :-1] = res[upper_right[0], upper_right[1]][:-1, 1:]
-            lower_left_img = np.zeros(res.shape[2:])
-            lower_left_img[:-1, 1:] = res[lower_left[0], lower_left[1]][1:, :-1]
-            lower_right_img = np.zeros(res.shape[2:])
-            lower_right_img[:-1, :-1] = res[lower_right[0], lower_right[1]][1:, 1:]
-            # average
-            output[i, j] = (upper_left_img + upper_right_img + lower_left_img + lower_right_img) / 4
-    # print(output)
-    """
-
     cls = Correlation_map(img1, img2)
-    """
-    cls._create_atomic_patch()
-    # cls._create_initial_co_map()
-    cls._create_simple_initial_co_map()
-    cls._multi_level_correlation_pyramid()
-    """
+
     hoge = cls()
     # print(cls.co_map.shape)
+    """
