@@ -16,17 +16,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-try:
-    from misc.Correlation_map import Correlation_map
-    print('misc.Correlation_map loaded')
-except ModuleNotFoundError as e:
-    print(e)
-try:
-    from Correlation_map import Correlation_map
-    print('Correlation_map loaded')
-except ModuleNotFoundError as e:
-    print(e)
-
 
 class Matching():
     '''
@@ -72,7 +61,7 @@ class Matching():
         '''
         ピラミッドの頂点での動きのマップを計算する
         '''
-        # 各ピクセルに(対応するx, 対応するy, 相関値s)が格納されている
+        # 各ピクセルに(対応するy, 対応するx, 相関値s)が格納されている
         map = np.zeros((3, self.obj.co_map_list[-1].shape[0], self.obj.co_map_list[-1].shape[1]))
         for i in range(map.shape[1]):
             for j in range(map.shape[2]):
@@ -105,7 +94,7 @@ class Matching():
                 p_dot_upper_left = (map_here[:2, i, j] * 2).astype('int64')
                 # ここでの相関値を取り出しておく
                 # s_here = self.map[2, i, j]
-                # auddrantごとに14式の計算を行い、mapを更新する
+                # qauddrantごとに14式の計算を行い、mapを更新する
                 for o_idx in range(4):
                     o_here = o_list[o_idx]
                     p_here = p_upper_left + o_here
@@ -162,6 +151,8 @@ if __name__ == '__main__':
     """
     sanity check
     """
+    from Correlation_map import Correlation_map
+
     # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
     img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 68, 500:500 + 260]
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 68, 500:500 + 260]
@@ -170,9 +161,11 @@ if __name__ == '__main__':
     co_cls()
 
     # 試しに書き出し
+    """
     cv2.imwrite('out.png', co_cls.co_map_list[1][0, 0] * 50)
     cv2.imwrite('out0.png', co_cls.co_map_list[0][0, 0] * 50)
     cv2.imwrite('here.png', img1)
+    """
 
     cls = Matching(co_cls)
     # cls._initial_move_map()
