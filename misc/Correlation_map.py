@@ -5,7 +5,7 @@ correlation map
 Author :
     Yuki Kumon
 Last Update :
-    2019-09-14
+    2019-09-24
 """
 
 
@@ -217,7 +217,6 @@ if __name__ == '__main__':
     sanity check
     """
 
-    """
     # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
     img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
@@ -226,4 +225,3 @@ if __name__ == '__main__':
 
     hoge = cls()
     # print(cls.co_map.shape)
-    """
