@@ -104,7 +104,7 @@ class Matching():
                 p_upper_left = np.array([i * 2, j * 2])
                 p_dot_upper_left = (map_here[:2, i, j] * 2).astype('int64')
                 # ここでの相関値を取り出しておく
-                s_here = self.map[2, i, j]
+                # s_here = self.map[2, i, j]
                 # auddrantごとに14式の計算を行い、mapを更新する
                 for o_idx in range(4):
                     o_here = o_list[o_idx]
@@ -132,6 +132,17 @@ class Matching():
             self._B()
             if self.N == 1:
                 break
+
+    def __call__(self):
+        '''
+        multi-level correlation pyramidからマッチング計算を行う
+        '''
+        self._initial_move_map()
+        print('complete to create initial matching map')
+        self._calc_match()
+        print('complete backtracking')
+
+        return self.map
 
 
 class Zero_padding(nn.Module):
@@ -164,6 +175,7 @@ if __name__ == '__main__':
     cv2.imwrite('here.png', img1)
 
     cls = Matching(co_cls)
-    cls._initial_move_map()
+    # cls._initial_move_map()
     # cls._B()
-    cls._calc_match()
+    # cls._calc_match()
+    out = cls()
