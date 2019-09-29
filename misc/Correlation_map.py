@@ -151,6 +151,7 @@ class Correlation_map():
         while N < np.min(self.co_map.shape[:2]):
             # aggregation
             aggregated_map = self._aggregation(co_map)
+            aggregated_map = self._rectification(aggregated_map)
             co_map_list.append(aggregated_map)
             del co_map
             co_map = aggregated_map

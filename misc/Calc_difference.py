@@ -32,7 +32,7 @@ class Calc_difference():
             print('please input valid mode! {} are ok. yours is \'{}\''.format(MODES, mode))
             sys.exit()
         print('mode: {}'.format(mode))
-    
+
         d_map = np.empty((map.shape[1], map.shape[2])).astype('int64')
         if mode == 'elevation':
             for i in range(d_map.shape[0]):
