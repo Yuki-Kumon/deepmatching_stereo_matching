@@ -24,6 +24,7 @@ import cv2
 flags.DEFINE_string('integrated_image_path', './data/after-before-crossdis.tif', 'image path to integrated image')
 flags.DEFINE_string('save_name', './output/result.png', 'save name')
 flags.DEFINE_string('origin_save_name', './output/here.png', 'save name of original one')
+flags.DEFINE_string('array_save_name', './output/response.npy', 'save name of deepmathing result')
 flags.DEFINE_string('feature_name', 'cv2.TM_CCOEFF_NORMED', 'feature name used to calculate feature map')
 flags.DEFINE_string('degree_map_mode', 'elevation', 'mode to calculate degree map')
 flags.DEFINE_list('image_cut_size', '68, 260', 'image size cut from start point')  # window size が5だと4を引いて2の累乗なら大丈夫
@@ -64,6 +65,7 @@ def main(_argv):
     # save
     cv2.imwrite(FLAGS.save_name, d_map * 30 + 100)
     cv2.imwrite(FLAGS.origin_save_name, img1)
+    np.save(FLAGS.array_save_name, out)
     logging.info('complete to save results')
 
 
