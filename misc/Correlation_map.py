@@ -22,14 +22,8 @@ from joblib import Parallel, delayed
 
 try:
     from misc.Feature_value import Feature_value
-    print('misc.Feature_value loaded')
 except ModuleNotFoundError as e:
-    print(e)
-try:
     from Feature_value import Feature_value
-    print('Feature_value loaded')
-except ModuleNotFoundError as e:
-    print(e)
 
 
 class Correlation_map():
@@ -91,43 +85,6 @@ class Correlation_map():
                 )
                 co_map[i - self.exclusive_pix, j - self.exclusive_pix] = co_here
         self.co_map = co_map
-
-    """
-    def _aggregation(self, map):
-        '''
-        aggregation to make upper class co_map
-        pooling window:3
-        stride:2
-        この設定は変えない(なぜならつらいから。。。)
-        '''
-        map_len_1 = int((map.shape[2]) / 2)
-        map_len_2 = int((map.shape[3]) / 2)
-        res = np.empty((map.shape[0], map.shape[1], map_len_1, map_len_2))
-
-        # max pool
-        for i in range(map.shape[0]):
-            for j in range(map.shape[1]):
-                res[i, j] = self.Maxpool(torch.from_numpy(map[i, j][None])).numpy()[0]
-
-        # shift and average
-        output = np.empty((map_len_1, map_len_2, map_len_1, map_len_2))
-        for i in range(map_len_1):
-            for j in range(map_len_2):
-                # 平均を取る対象のインデックスを計算しておく
-                upper_left = [i * 2, j * 2]
-                upper_right = [i * 2, j * 2 + 1]
-                lower_left = [i * 2 + 1, j * 2]
-                lower_right = [i * 2 + 1, j * 2 + 1]
-
-                # shiftはpaddingしているので不要
-                upper_left_img = res[upper_left[0], upper_left[1]]
-                upper_right_img = res[upper_right[0], upper_right[1]]
-                lower_left_img = res[lower_left[0], lower_left[1]]
-                lower_right_img = res[lower_right[0], lower_right[1]]
-                # average
-                output[i, j] = (upper_left_img + upper_right_img + lower_left_img + lower_right_img) / 4
-        return output
-    """
 
     def _aggregation(self, map):
         '''
