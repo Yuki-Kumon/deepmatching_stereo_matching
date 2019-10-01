@@ -19,20 +19,27 @@ import numpy as np
 import cv2
 
 
-flags.DEFINE_string('original_image_path', './data/band3s.tif', 'image path of original image')
-flags.DEFINE_string('template_image_path', './data/band3bs.tif', 'image path of template image')
+# flags.DEFINE_string('original_image_path', './data/band3s.tif', 'image path of original image')
+# flags.DEFINE_string('template_image_path', './data/band3bs.tif', 'image path of template image')
+flags.DEFINE_string('integrated_image_path', './data/after-before-crossdis.tif', 'image path to integrated image')
 flags.DEFINE_string('save_name', './output/result.png', 'save name')
 flags.DEFINE_string('origin_save_name', './output/here.png', 'save name of original one')
 flags.DEFINE_string('feature_name', 'cv2.TM_CCOEFF_NORMED', 'feature name used to calculate feature map')
 flags.DEFINE_string('degree_map_mode', 'elevation', 'mode to calculate degree map')
-flags.DEFINE_list('image_cut_size', '68, 260', 'image size cut from start point')
-flags.DEFINE_list('image_cut_start', '100, 100', 'point to cut image from')
+flags.DEFINE_list('image_cut_size', '68, 260', 'image size cut from start point')  # window size が5だと4を引いて2の累乗なら大丈夫
+flags.DEFINE_list('image_cut_start', '2500, 3000', 'point to cut image from')
 
 
 def main(_argv):
     # load images
+    """
     img1_raw = cv2.imread(FLAGS.original_image_path, cv2.IMREAD_GRAYSCALE)
     img2_raw = cv2.imread(FLAGS.template_image_path, cv2.IMREAD_GRAYSCALE)
+    """
+    img_loaded = cv2.imread(FLAGS.integrated_image_path)
+    img1_raw = img_loaded[:, :, 1]  # 地震前
+    img2_raw = img_loaded[:, :, 2]  # 地震後
+    img3_raw = img_loaded[:, :, 0]  # 変化マップ
 
     # image cut
     size = [int(x) for x in FLAGS.image_cut_size]
@@ -40,6 +47,7 @@ def main(_argv):
 
     img1 = img1_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
     img2 = img2_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
+    img3 = img3_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
     logging.info('complete to load images')
 
     # deepmathing
