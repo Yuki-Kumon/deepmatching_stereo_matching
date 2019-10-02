@@ -34,16 +34,15 @@ flags.DEFINE_list('image_cut_start', '2500, 3000', 'point to cut image from')
 
 
 def main(_argv):
+    # image cut size
+    size = [int(x) for x in FLAGS.image_cut_size]
+    start = [int(x) for x in FLAGS.image_cut_start]
     # load images
     if FLAGS.two_images_input:
         img_loaded = cv2.imread(FLAGS.integrated_image_path)
         img1_raw = img_loaded[:, :, 1]  # 地震前
         img2_raw = img_loaded[:, :, 2]  # 地震後
         img3_raw = img_loaded[:, :, 0]  # 変化マップ
-
-        # image cut
-        size = [int(x) for x in FLAGS.image_cut_size]
-        start = [int(x) for x in FLAGS.image_cut_start]
 
         img1 = img1_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
         img2 = img2_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
