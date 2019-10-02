@@ -38,7 +38,7 @@ def main(_argv):
     size = [int(x) for x in FLAGS.image_cut_size]
     start = [int(x) for x in FLAGS.image_cut_start]
     # load images
-    if FLAGS.two_images_input:
+    if not FLAGS.two_images_input:
         img_loaded = cv2.imread(FLAGS.integrated_image_path)
         img1_raw = img_loaded[:, :, 1]  # 地震前
         img2_raw = img_loaded[:, :, 2]  # 地震後
