@@ -19,11 +19,13 @@ import numpy as np
 import cv2
 
 
-# flags.DEFINE_string('original_image_path', './data/band3s.tif', 'image path of original image')
-# flags.DEFINE_string('template_image_path', './data/band3bs.tif', 'image path of template image')
+flags.DEFINE_string('original_image_path', './data/band3s.tif', 'image path of original image')
+flags.DEFINE_string('template_image_path', './data/band3bs.tif', 'image path of template image')
 flags.DEFINE_string('integrated_image_path', './data/after-before-crossdis.tif', 'image path to integrated image')
+flags.DEFINE_bool('two_images_input', False, '2 images are inputed or not')
 flags.DEFINE_string('save_name', './output/result.png', 'save name')
 flags.DEFINE_string('origin_save_name', './output/here.png', 'save name of original one')
+flags.DEFINE_string('FLAGS.GT_save_name', './output/gt.png', 'save name of grand truth')
 flags.DEFINE_string('array_save_name', './output/response.npy', 'save name of deepmathing result')
 flags.DEFINE_string('feature_name', 'cv2.TM_CCOEFF_NORMED', 'feature name used to calculate feature map')
 flags.DEFINE_string('degree_map_mode', 'elevation', 'mode to calculate degree map')
@@ -33,22 +35,25 @@ flags.DEFINE_list('image_cut_start', '2500, 3000', 'point to cut image from')
 
 def main(_argv):
     # load images
-    """
-    img1_raw = cv2.imread(FLAGS.original_image_path, cv2.IMREAD_GRAYSCALE)
-    img2_raw = cv2.imread(FLAGS.template_image_path, cv2.IMREAD_GRAYSCALE)
-    """
-    img_loaded = cv2.imread(FLAGS.integrated_image_path)
-    img1_raw = img_loaded[:, :, 1]  # 地震前
-    img2_raw = img_loaded[:, :, 2]  # 地震後
-    img3_raw = img_loaded[:, :, 0]  # 変化マップ
+    if FLAGS.two_images_input:
+        img_loaded = cv2.imread(FLAGS.integrated_image_path)
+        img1_raw = img_loaded[:, :, 1]  # 地震前
+        img2_raw = img_loaded[:, :, 2]  # 地震後
+        img3_raw = img_loaded[:, :, 0]  # 変化マップ
 
-    # image cut
-    size = [int(x) for x in FLAGS.image_cut_size]
-    start = [int(x) for x in FLAGS.image_cut_start]
+        # image cut
+        size = [int(x) for x in FLAGS.image_cut_size]
+        start = [int(x) for x in FLAGS.image_cut_start]
 
-    img1 = img1_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
-    img2 = img2_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
-    img3 = img3_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
+        img1 = img1_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
+        img2 = img2_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
+        img3 = img3_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
+    else:
+        img1_raw = cv2.imread(FLAGS.original_image_path, cv2.IMREAD_GRAYSCALE)
+        img2_raw = cv2.imread(FLAGS.template_image_path, cv2.IMREAD_GRAYSCALE)
+
+        img1 = img1_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
+        img2 = img2_raw[start[0]:start[0] + size[0], start[1]:start[1] + size[1]]
     logging.info('complete to load images')
 
     # deepmathing
@@ -66,6 +71,8 @@ def main(_argv):
     cv2.imwrite(FLAGS.save_name, d_map * 30 + 100)
     cv2.imwrite(FLAGS.origin_save_name, img1)
     np.save(FLAGS.array_save_name, out)
+    if FLAGS.two_images_input:
+        cv2.imwrite(FLAGS.GT_save_name, img3)
     logging.info('complete to save results')
 
 
