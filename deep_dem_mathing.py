@@ -25,7 +25,7 @@ flags.DEFINE_string('integrated_image_path', './data/after-before-crossdis.tif',
 flags.DEFINE_bool('two_images_input', False, '2 images are inputed or not')
 flags.DEFINE_string('save_name', './output/result.png', 'save name')
 flags.DEFINE_string('origin_save_name', './output/here.png', 'save name of original one')
-flags.DEFINE_string('FLAGS.GT_save_name', './output/gt.png', 'save name of grand truth')
+flags.DEFINE_string('GT_save_name', './output/gt.png', 'save name of grand truth')
 flags.DEFINE_string('array_save_name', './output/response.npy', 'save name of deepmathing result')
 flags.DEFINE_string('feature_name', 'cv2.TM_CCOEFF_NORMED', 'feature name used to calculate feature map')
 flags.DEFINE_string('degree_map_mode', 'elevation', 'mode to calculate degree map')
@@ -71,7 +71,7 @@ def main(_argv):
     cv2.imwrite(FLAGS.save_name, d_map * 30 + 100)
     cv2.imwrite(FLAGS.origin_save_name, img1)
     np.save(FLAGS.array_save_name, out)
-    if FLAGS.two_images_input:
+    if not FLAGS.two_images_input:
         cv2.imwrite(FLAGS.GT_save_name, img3)
     logging.info('complete to save results')
 
