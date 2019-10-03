@@ -13,10 +13,11 @@ dependencies:
   # - scikit-learn  # kNN required
   # - tqdm
   # - pyyaml
-  # - pip
+  - pip
   - joblib
   # - pip:
     # - tensorboardx==1.6
     # - torchsummary
     # - tensorflow-tensorboard
     # - tensorflow
+    - japanize-matplotlib
