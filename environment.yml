@@ -15,7 +15,7 @@ dependencies:
   # - pyyaml
   - pip
   - joblib
-  # - pip:
+  - pip:
     # - tensorboardx==1.6
     # - torchsummary
     # - tensorflow-tensorboard
