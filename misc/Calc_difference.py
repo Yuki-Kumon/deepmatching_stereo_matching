@@ -60,7 +60,7 @@ if __name__ == '__main__':
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[start:start + 68, start:start + 260]
 
     co_cls = Correlation_map(img1, img2, window_size=5)
-    # co_cls = Correlation_map(img1, img2, window_size=5, feature_name='cv2.TM_CCORR_NORMED')
+    # co_cls = Correlation_map(img1, img2, window_size=5, feature_name='cv2.TM_CCOEFF')
     co_cls()
 
     cls = Matching(co_cls)

@@ -21,7 +21,7 @@ class Feature_value():
     '''
 
     def __init__(self, feature_name='cv2.TM_CCOEFF_NORMED'):
-        FEATURE_NAME_LIST = ['cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR_NORMED']  # cv2.TM_CCORR_NORMEDは既存手法との比較用(ただ畳み込みをおこなうのみの類似度)
+        FEATURE_NAME_LIST = ['cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCOEFF']  # cv2.TM_CCOEFFは既存手法との比較用(ただ畳み込みをおこなうのみの類似度)
 
         if feature_name not in FEATURE_NAME_LIST:
             print('invalid feature_name \'{}\' is inputed!'.format(feature_name))
