@@ -29,11 +29,15 @@ class Feature_value():
 
         self.method = eval(feature_name)
 
+    @staticmethod
+    def min_max(x, axis=None):
+        min = x.min(axis=axis, keepdims=True)
+        max = x.max(axis=axis, keepdims=True)
+        result = (x - min) / (max - min)
+        return result
+
     def __call__(self, img, template):
-        res = (cv2.matchTemplate(img, template, self.method) + 1.0) / 2.0
-        """
+        # res = (cv2.matchTemplate(img, template, self.method) + 1.0) / 2.0
         res = cv2.matchTemplate(img, template, self.method)
-        res = (res - np.mean(res)) / np.std(res)
-        res = (res + 1.0) / 2.0
-        """
+        res = self.min_max(res)
         return res
