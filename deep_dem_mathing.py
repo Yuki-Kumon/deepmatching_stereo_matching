@@ -72,7 +72,7 @@ def main(_argv):
     cv2.imwrite(FLAGS.correlation_save_name, out[2, :, :] * 70)
     cv2.imwrite(FLAGS.origin_save_name, img1)
     np.save(FLAGS.array_save_name, out)
-    cv2.imwrite('./output/co_map.png', co_cls.co_map_list[0][0, 0] * 70)
+    # cv2.imwrite('./output/co_map.png', co_cls.co_map_list[0][0, 0] * 70)
     if not FLAGS.two_images_input:
         cv2.imwrite(FLAGS.GT_save_name, img3)
     logging.info('complete to save results')
