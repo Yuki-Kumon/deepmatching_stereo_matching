@@ -31,7 +31,7 @@ flags.DEFINE_string('array_save_name', './output/response.npy', 'save name of de
 flags.DEFINE_string('feature_name', 'cv2.TM_CCOEFF_NORMED', 'feature name used to calculate feature map')
 flags.DEFINE_string('degree_map_mode', 'elevation', 'mode to calculate degree map')
 flags.DEFINE_list('image_cut_size', '68, 260', 'image size cut from start point')  # window size が5だと4を引いて2の累乗なら大丈夫
-flags.DEFINE_list('image_cut_start', '2500, 3000', 'point to cut image from')
+flags.DEFINE_list('image_cut_start', '1900, 3200', 'point to cut image from')
 
 
 def main(_argv):
