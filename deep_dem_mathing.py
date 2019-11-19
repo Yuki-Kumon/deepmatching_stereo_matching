@@ -22,7 +22,7 @@ import cv2
 flags.DEFINE_string('original_image_path', './data/band3s.tif', 'image path of original image')
 flags.DEFINE_string('template_image_path', './data/band3bs.tif', 'image path of template image')
 flags.DEFINE_string('integrated_image_path', './data/after-before-crossdis.tif', 'image path to integrated image')
-flags.DEFINE_bool('two_images_input', False, '2 images are inputed or not')
+flags.DEFINE_bool('two_images_input', True, '2 images are inputed or not')
 flags.DEFINE_string('save_name', './output/result.png', 'save name')
 flags.DEFINE_string('origin_save_name', './output/here.png', 'save name of original one')
 flags.DEFINE_string('correlation_save_name', './output/correlation.png', 'save name of correlation')
@@ -31,7 +31,7 @@ flags.DEFINE_string('array_save_name', './output/response.npy', 'save name of de
 flags.DEFINE_string('feature_name', 'cv2.TM_CCOEFF_NORMED', 'feature name used to calculate feature map')
 flags.DEFINE_string('degree_map_mode', 'elevation', 'mode to calculate degree map')
 flags.DEFINE_list('image_cut_size', '68, 260', 'image size cut from start point')  # window size が5だと4を引いて2の累乗なら大丈夫
-flags.DEFINE_list('image_cut_start', '3500, 1900', 'point to cut image from')
+flags.DEFINE_list('image_cut_start', '3500, 1760', 'point to cut image from')
 
 
 def main(_argv):
@@ -39,7 +39,7 @@ def main(_argv):
     size = [int(x) for x in FLAGS.image_cut_size]
     start = [int(x) for x in FLAGS.image_cut_start]
     # load images
-    if not FLAGS.two_images_input:
+    if FLAGS.two_images_input:
         img_loaded = cv2.imread(FLAGS.integrated_image_path)
         img1_raw = img_loaded[:, :, 1]  # 地震前
         img2_raw = img_loaded[:, :, 2]  # 地震後
@@ -71,9 +71,10 @@ def main(_argv):
     cv2.imwrite(FLAGS.save_name, d_map * 30 + 100)
     cv2.imwrite(FLAGS.correlation_save_name, out[2, :, :] * 70)
     cv2.imwrite(FLAGS.origin_save_name, img1)
+    cv2.imwrite('./output/here2.png', img2)
     np.save(FLAGS.array_save_name, out)
     # cv2.imwrite('./output/co_map.png', co_cls.co_map_list[0][0, 0] * 70)
-    if not FLAGS.two_images_input:
+    if FLAGS.two_images_input:
         cv2.imwrite(FLAGS.GT_save_name, img3)
     logging.info('complete to save results')
 

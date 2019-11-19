@@ -4,6 +4,7 @@ output
 
 # codes to create images for paper
 image_concat.py
+stereo_matching.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
