@@ -22,7 +22,7 @@ import cv2
 flags.DEFINE_string('original_image_path', './data/band3s.tif', 'image path of original image')
 flags.DEFINE_string('template_image_path', './data/band3bs.tif', 'image path of template image')
 flags.DEFINE_string('integrated_image_path', './data/after-before-crossdis.tif', 'image path to integrated image')
-flags.DEFINE_bool('two_images_input', True, '2 images are inputed or not')
+flags.DEFINE_bool('two_images_input', False, '2 images are inputed or not')
 flags.DEFINE_string('save_name', './output/result.png', 'save name')
 flags.DEFINE_string('origin_save_name', './output/here.png', 'save name of original one')
 flags.DEFINE_string('correlation_save_name', './output/correlation.png', 'save name of correlation')
