@@ -74,7 +74,7 @@ def main(_argv):
     cv2.imwrite('./output/here2.png', img2)
     np.save(FLAGS.array_save_name, out)
     # cv2.imwrite('./output/co_map.png', co_cls.co_map_list[0][0, 0] * 70)
-    if FLAGS.two_images_input:
+    if not FLAGS.two_images_input:
         cv2.imwrite(FLAGS.GT_save_name, img3)
     logging.info('complete to save results')
 
