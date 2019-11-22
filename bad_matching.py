@@ -22,7 +22,7 @@ flags.DEFINE_string('original_image_path', './data/band3s.tif', 'image path of o
 flags.DEFINE_string('template_image_path', './data/band3bs.tif', 'image path of template image')
 flags.DEFINE_string('integrated_image_path', './data/after-before-crossdis.tif', 'image path to integrated image')
 flags.DEFINE_bool('two_images_input', True, '2 images are inputed or not')
-flags.DEFINE_string('save_name', './output/result.png', 'save name')
+flags.DEFINE_string('save_name', './output/bad_result.png', 'save name')
 flags.DEFINE_string('origin_save_name', './output/here.png', 'save name of original one')
 flags.DEFINE_string('correlation_save_name', './output/correlation.png', 'save name of correlation')
 flags.DEFINE_string('GT_save_name', './output/gt.png', 'save name of grand truth')
@@ -67,8 +67,9 @@ def main(_argv):
     dis = np.zeros((co_cls.co_map.shape[0], co_cls.co_map.shape[1]))
     for i in range(co_cls.co_map.shape[0]):
         for j in range(co_cls.co_map.shape[1]):
-            dis[i, j] = np.argmax(co_cls.co_map[i, j, i, :]) - j
+            dis[i, j] = j - np.argmax(co_cls.co_map[i, j, i, :])
     print(dis)
+    cv2.imwrite(FLAGS.save_name, dis * 30 + 100)
 
 
 if __name__ == '__main__':
