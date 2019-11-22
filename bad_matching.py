@@ -67,7 +67,7 @@ def main(_argv):
     dis = np.zeros((co_cls.co_map.shape[0], co_cls.co_map.shape[1]))
     for i in range(co_cls.co_map.shape[0]):
         for j in range(co_cls.co_map.shape[1]):
-            dis[i, j] = np.argmax(co_cls.co_map[i, j, i, :])
+            dis[i, j] = np.argmax(co_cls.co_map[i, j, i, :]) - j
     print(dis)
 
 
