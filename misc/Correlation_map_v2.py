@@ -28,10 +28,10 @@ class CorrelationMapV2():
     deepmatchingみたいにピラミッド状の特徴マップを作成する
     '''
 
-    def __init__(self, img, template, window_size=3, search_window_size=[9, 9], r_lam=1.4, maxpool=[3, 2], feature_name='cv2.TM_CCOEFF_NORMED'):
+    def __init__(self, img, template, window_size=3, search_window_size=[9, 9], r_lam=1.4, feature_name='cv2.TM_CCOEFF_NORMED'):
         '''
         各window_sizeは奇数
-        search_window_sizeはリストで指定
+        search_window_sizeはリストで指定(今の所正方形のみ)
         '''
         if img.shape != template.shape:
             print('use same size images!(リサイズすると意味がないので)')
@@ -41,7 +41,6 @@ class CorrelationMapV2():
         self.window_size = window_size
         self.search_window_size = search_window_size
         self.lam = r_lam
-        self.maxpool = maxpool
 
         self.exclusive_pix = int((window_size - 1) / 2)
         # cv2 matchi templateではパディングを行わないのでここで大きめに取っておく
@@ -52,6 +51,8 @@ class CorrelationMapV2():
         self.Feature = Feature_value(feature_name=feature_name)
         self.Maxpool = Maxpool()
         self.Maxpool.eval()
+        self.Maxpool_p = Maxpool_padding()
+        self.Maxpool_p.eval()
 
     def _create_atomic_patch(self):
         '''
@@ -97,10 +98,59 @@ class CorrelationMapV2():
                 co_map[i - self.exclusive_pix, j - self.exclusive_pix] = co_here
         self.co_map = co_map
 
-    def _aggregation(self):
+    def _aggregation(self, map):
         '''
         特徴マップを圧縮し荒いマップを計算していく
+        input: (W, H, w, h)
+        output: (W/2, H/2, w/2, h/2)
         '''
+        map_len_1 = int((map.shape[2]) / 2)
+        map_len_2 = int((map.shape[3]) / 2)
+        map_im_len_1 = int((map.shape[0]) / 2)
+        map_im_len_2 = int((map.shape[1]) / 2)
+        # 特徴マップは半分の解像度になる(maxpoolingの設定を変えれば変わる)
+        res = np.empty((map.shape[0], map.shape[1], map_len_1, map_len_2))
+
+        # max pool
+        if (map_len_1 % 2 == 0):
+            for i in range(map.shape[0]):
+                for j in range(map.shape[1]):
+                    # 各画素に対応する特徴マップに対してmax poolingする
+                    res[i, j] = self.Maxpool(torch.from_numpy(map[i, j][None])).numpy()[0]
+        else:
+            for i in range(map.shape[0]):
+                for j in range(map.shape[1]):
+                    # 各画素に対応する特徴マップに対してmax poolingする
+                    res[i, j] = self.Maxpool_p(torch.from_numpy(map[i, j][None])).numpy()[0]
+
+        # shift and average
+        output = np.empty((map_im_len_1, map_im_len_2, map_len_1, map_len_2))
+        # print(res[-1, -1])
+
+        # process
+        def process(i, j, res):
+            # 平均を取る対象のインデックスを計算しておく
+            # 各画素ごとに画像全体に対するインデックスとのズレに注意する
+            upper_left = [i * 2, j * 2]
+            upper_right = [i * 2, j * 2 + 1]
+            lower_left = [i * 2 + 1, j * 2]
+            lower_right = [i * 2 + 1, j * 2 + 1]
+
+            # shiftは各画素ごとに特徴マップの元画像での位置がずれているため不要
+            upper_left_img = res[upper_left[0], upper_left[1]]
+            upper_right_img = res[upper_right[0], upper_right[1]]
+            lower_left_img = res[lower_left[0], lower_left[1]]
+            lower_right_img = res[lower_right[0], lower_right[1]]
+            # average
+            return (upper_left_img + upper_right_img + lower_left_img + lower_right_img) / 4, (i, j)
+
+        # parallel processing
+        response = Parallel(n_jobs=-1)([delayed(process)(i, j, res) for i in range(map_im_len_1) for j in range(map_im_len_2)])
+        # assign
+        for res_here in response:
+            output[res_here[1]] = res_here[0]
+
+        return output
 
     def _template_padding(self):
         '''
@@ -118,9 +168,20 @@ class CorrelationMapV2():
         self.template = self.template.astype(np.uint8)
 
 
-class Maxpool(nn.Module):
+class Maxpool_padding(nn.Module):
 
     def __init__(self, window=3, stride=2, padding=1):
+        super(Maxpool_padding, self).__init__()
+
+        self.pool = nn.MaxPool2d(window, stride, padding=padding)
+
+    def forward(self, x):
+        return self.pool(x)
+
+
+class Maxpool(nn.Module):
+
+    def __init__(self, window=3, stride=2, padding=0):
         super(Maxpool, self).__init__()
 
         self.pool = nn.MaxPool2d(window, stride, padding=padding)
@@ -142,5 +203,10 @@ if __name__ == '__main__':
     cls._template_padding()
     cls._create_atomic_patch()
     cls._create_initial_co_map()
-
-    out = cls._maxpool(cls.template)
+    print(cls.co_map.shape)
+    out = cls._aggregation(cls.co_map)
+    print(out.shape)
+    out = cls._aggregation(out)
+    print(out.shape)
+    out = cls._aggregation(out)
+    print(out)
