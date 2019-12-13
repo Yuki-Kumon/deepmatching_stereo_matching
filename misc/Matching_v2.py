@@ -54,8 +54,8 @@ class Matching():
         if np.max(co_map_near_p_dot) < 0.0001:
             m = [1, 1]
         # p_dot, 新たな相関値を返す
-        # print(p_dot[0] - 1 + 1, p_dot[0] + 2 + 1, p_dot[1] - 1 + 1, p_dot[1] + 2 + 1, co_map_near_p_dot, co_map_near_p_dot)
-        return p_dot[0] + m[0] - 1, p_dot[1] + m[1] - 1, co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0], p_dot[1]]
+        # 相関値を足す際、p_dotの座標のズレに注意
+        return p_dot[0] + m[0] - 1, p_dot[1] + m[1] - 1, co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0] - p[0], p_dot[1] - p[1]]
 
     def _initial_move_map(self):
         '''
@@ -67,6 +67,7 @@ class Matching():
             for j in range(map.shape[2]):
                 map[:2, i, j] = i, j
                 # 初めの移動量を計算(これは必要なさそうではある)
+                # print(map[:, i, j])
                 map[:, i, j] = self._calc_near_match(self.obj.co_map_list[-1], (i, j), map[:2, i, j].astype('int64'))
         self.map = map
         self.map_idx = -1
@@ -154,8 +155,8 @@ if __name__ == '__main__':
     from Correlation_map_v2 import CorrelationMapV2
 
     # atomicな特徴マップが一辺が2^nじゃないとバグるカス実装です。。。
-    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 130, 500:500 + 130]
-    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 130, 500:500 + 130]
+    img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 258, 500:500 + 258]
+    img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[500:500 + 258, 500:500 + 258]
     print(img1.shape)
 
     co_cls = CorrelationMapV2(img1, img2)
@@ -173,3 +174,4 @@ if __name__ == '__main__':
     # cls._B()
     # cls._calc_match()
     out = cls()
+    print(out)
