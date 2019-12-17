@@ -92,6 +92,9 @@ if __name__ == '__main__':
     cls = MatchingV2(co_cls)
     out = cls()
 
+    print(cls.obj.co_map_list[-1])
+    print(cls.obj.co_map_list[-2])
+
     d_map = Calc_difference.cal_map(out, mode='elevation')
     # d_map = Calc_difference.cal_map(out, mode='distance')
 

@@ -120,8 +120,6 @@ class CorrelationMapV2():
         map_len_2 = int((map.shape[3]) / 2)
         map_im_len_1 = int((map.shape[0]) / 2)
         map_im_len_2 = int((map.shape[1]) / 2)
-        res_len_1 = map_len_1 - 1
-        res_len_2 = map_len_2 - 1
         # 特徴マップは半分の解像度になる(maxpoolingの設定を変えれば変わる)
         res = np.empty((map.shape[0], map.shape[1], map_len_1, map_len_2))
 
@@ -149,8 +147,6 @@ class CorrelationMapV2():
             upper_right_img = res[upper_right[0], upper_right[1]]
             lower_left_img = res[lower_left[0], lower_left[1]]
             lower_right_img = res[lower_right[0], lower_right[1]]
-
-            average = np.zeros((map_len_1, map_len_2))
             # average
             return (upper_left_img + upper_right_img + lower_left_img + lower_right_img) / 4, (i, j)
 
@@ -173,7 +169,7 @@ class CorrelationMapV2():
         ])
         self.template[
             self.template_padding_pix[0]:-self.template_padding_pix[0],
-            self.template_padding_pix[0]:-self.template_padding_pix[0]
+            self.template_padding_pix[1]:-self.template_padding_pix[1]
         ] = temp
         self.template = self.template.astype(np.uint8)
 
@@ -224,7 +220,7 @@ class CorrelationMapV2():
 
 class Maxpool(nn.Module):
 
-    def __init__(self, window=3, stride=2, padding=0):
+    def __init__(self, window=3, stride=2, padding=1):
         super(Maxpool, self).__init__()
 
         self.pool = nn.MaxPool2d(window, stride, padding=padding)
