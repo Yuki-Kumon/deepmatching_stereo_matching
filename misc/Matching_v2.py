@@ -17,7 +17,7 @@ import torch
 import torch.nn as nn
 
 
-class Matching():
+class MatchingV2():
     '''
     multi-level correlation pyramidからマッチングを行う
     原著の14式に従って計算していく
@@ -68,7 +68,11 @@ class Matching():
                 map[:2, i, j] = i, j
                 # 初めの移動量を計算(これは必要なさそうではある)
                 # print(map[:, i, j])
-                map[:, i, j] = self._calc_near_match(self.obj.co_map_list[-1], (i, j), map[:2, i, j].astype('int64'))
+                map[:, i, j] = self._calc_near_match(
+                    self.obj.co_map_list[-1],
+                    (i, j),
+                    map[:2, i, j].astype('int64')
+                )
         self.map = map
         self.map_idx = -1
         self.N = self.obj.N_map
@@ -169,9 +173,8 @@ if __name__ == '__main__':
     cv2.imwrite('here.png', img1)
     """
 
-    cls = Matching(co_cls)
+    cls = MatchingV2(co_cls)
     # cls._initial_move_map()
     # cls._B()
     # cls._calc_match()
     out = cls()
-    print(out)
