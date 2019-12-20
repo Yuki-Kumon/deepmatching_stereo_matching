@@ -41,8 +41,9 @@ class MatchingV2():
         p_iとして共に少し4つのchildrenとして移動させた上でこの関数に読ませることにする
         原著の13式に従って対応点を計算する
         13式のmを計算する
+
+        ゼロパディングとかでなんとか既存の指揮を流用したい
         '''
-        """
         # pに対応した特徴マップを取り出す
         map_on_p = co_map[p[0], p[1]]
         # 端対策にゼロパディングする
@@ -57,12 +58,18 @@ class MatchingV2():
         # p_dot, 新たな相関値を返す
         # 相関値を足す際、p_dotの座標のズレに注意
         return p_dot[0] + m[0] - 1, p_dot[1] + m[1] - 1, co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0] - p[0], p_dot[1] - p[1]]
+
         """
         # pに対応した特徴マップを取り出す
         map_on_p = co_map[p[0], p[1]]
-        """
-        テンプレートのパッディングまで考慮してゼロ埋めマップ作成→普通バージョンと同じようにパディング
-        """
+        # TODO
+        '''
+        #####TODO#########
+        テンプレートのパッディングまで考慮してゼロ埋めマップ作成
+        →存在している特徴マップを埋め込み
+        →これまでと同じアルゴリズムで動くように余計なパディングを削除
+        '''
+        # TODO
         # 端対策にゼロパディングする
         map_on_p_padded = self.Padding(torch.from_numpy(map_on_p[None])).numpy()[0]
         # p_dot周辺の3×3を取り出す
@@ -75,6 +82,7 @@ class MatchingV2():
         # p_dot, 新たな相関値を返す
         # print(p_dot[0] - 1 + 1, p_dot[0] + 2 + 1, p_dot[1] - 1 + 1, p_dot[1] + 2 + 1, co_map_near_p_dot, co_map_near_p_dot)
         return p_dot[0] + m[0] - 1, p_dot[1] + m[1] - 1, co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0], p_dot[1]]
+        """
 
     def _initial_move_map(self):
         '''
