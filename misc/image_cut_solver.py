@@ -143,7 +143,7 @@ if __name__ == '__main__':
     cls._cut_and_pool()
     # cls._solver(cls.img1_sub[0], cls.img2_sub[0])
     cls._execute_matching()
-    print(cls.d_map)
+    print(cls.d_map.shape)
 
     cv2.imwrite('./here.png', img1)
     cv2.imwrite('./output.png', cls.d_map * 30 + 100)
