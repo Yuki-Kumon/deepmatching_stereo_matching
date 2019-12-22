@@ -127,9 +127,9 @@ class Matching():
         multi-level correlation pyramidからマッチング計算を行う
         '''
         self._initial_move_map()
-        print('complete to create initial matching map')
+        # print('complete to create initial matching map')
         self._calc_match()
-        print('complete backtracking')
+        # print('complete backtracking')
 
         return self.map
 

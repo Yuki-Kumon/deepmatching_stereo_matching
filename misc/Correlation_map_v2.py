@@ -28,13 +28,14 @@ class CorrelationMapV2():
     deepmatchingみたいにピラミッド状の特徴マップを作成する
     '''
 
-    def __init__(self, img, template, window_size=3, deep_level=4, r_lam=1.4, feature_name='cv2.TM_CCOEFF_NORMED'):
+    def __init__(self, img, template, window_size=3, deep_level=5, r_lam=1.4, feature_name='cv2.TM_CCOEFF_NORMED'):
         '''
         window_sizeは奇数
         Nは自然数
         '''
-        N = deep_level
+        N = deep_level - 1
         assert img.shape == template.shape, '2枚の画像は同じサイズのみ'
+        assert N > 0, 'deeplevelは1以上'
         self.img = img
         self.template = template
         self.window_size = window_size
@@ -103,6 +104,8 @@ class CorrelationMapV2():
         '''
         map_len_1 = int((map.shape[2]) / 2)
         map_len_2 = int((map.shape[3]) / 2)
+        map_im_len_1 = int((map.shape[0]) / 2)
+        map_im_len_2 = int((map.shape[1]) / 2)
         res = np.empty((map.shape[0], map.shape[1], map_len_1, map_len_2))
 
         # max pool
@@ -111,7 +114,7 @@ class CorrelationMapV2():
                 res[i, j] = self.Maxpool(torch.from_numpy(map[i, j][None])).numpy()[0]
 
         # shift and average
-        output = np.empty((map_len_1, map_len_2, map_len_1, map_len_2))
+        output = np.empty((map_im_len_1, map_im_len_2, map_len_1, map_len_2))
 
         # process
         def process(i, j, res):
@@ -150,7 +153,7 @@ class CorrelationMapV2():
         co_map_list.append(co_map)
         N = 1
         iteration = 1
-        for N_here in range(self.max_N + 1):
+        for N_here in range(self.max_N):
             # aggregation
             aggregated_map = self._aggregation(co_map)
             aggregated_map = self._rectification(aggregated_map)
@@ -183,11 +186,23 @@ class CorrelationMapV2():
 
         # テンプレート画像の対応座標
         i_list = [2**self.max_N * i_global, 2**self.max_N * (i_global + 1) + 2 * self.exclusive_pix]
-        j_list = [0, 2**self.max_N + 2 * self.exclusive_pix]
+        j_list = [2**self.max_N * j_global, 2**self.max_N * (j_global + 1) + 2 * self.exclusive_pix]
 
         return i_list, j_list
 
+    def __call__(self):
+        '''
+        特徴マップの計算までを行う
+        '''
+        self._create_atomic_patch()
+        # print('complete to create atomic patch')
+        self._create_initial_co_map()
+        # print('complete to create initial correlation map')
+        self._multi_level_correlation_pyramid()
+        print('complete to create multi-level correlation pyramid')
+        print('pyramid level: {}, N={}'.format(self.iteration, self.N_map))
 
+        return self.co_map_list
 
 
 class Maxpool(nn.Module):
@@ -210,7 +225,9 @@ if __name__ == '__main__':
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[:130, :130]
 
     cls = CorrelationMapV2(img1, img2)
-    cls._create_atomic_patch()
-    cls._create_initial_co_map()
+    # cls._create_atomic_patch()
+    # cls._create_initial_co_map()
     # cls._aggregation(cls.co_map)
-    cls._multi_level_correlation_pyramid()
+    # cls._multi_level_correlation_pyramid()
+
+    cls()

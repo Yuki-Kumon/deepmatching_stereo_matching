@@ -5,7 +5,7 @@ matching on correlation map
 Author :
     Yuki Kumon
 Last Update :
-    2019-12-12
+    2019-12-22
 """
 
 
@@ -44,32 +44,10 @@ class MatchingV2():
 
         ゼロパディングとかでなんとか既存の指揮を流用したい
         '''
+        # ピラミッド内のローカルなp_dot座標を計算しておく
+        p_dot = self._local_index(p_dot)
         # pに対応した特徴マップを取り出す
         map_on_p = co_map[p[0], p[1]]
-        # 端対策にゼロパディングする
-        map_on_p_padded = self.Padding(torch.from_numpy(map_on_p[None])).numpy()[0]
-        # p_dot周辺の3×3を取り出す(座標のずれに注意)
-        co_map_near_p_dot = map_on_p_padded[p_dot[0] - p[0] - 1 + 1:p_dot[0] - p[0] + 2 + 1, p_dot[1] - p[1] - 1 + 1:p_dot[1] - p[1] + 2 + 1]
-        # この中で相関値最大の座標を計算
-        m = np.unravel_index(np.argmax(co_map_near_p_dot), co_map_near_p_dot.shape)
-        # 全部0だった場合の処理(もし最大値がだいたいゼロなら、移動していないとみなす)
-        if np.max(co_map_near_p_dot) < 0.0001:
-            m = [1, 1]
-        # p_dot, 新たな相関値を返す
-        # 相関値を足す際、p_dotの座標のズレに注意
-        return p_dot[0] + m[0] - 1, p_dot[1] + m[1] - 1, co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0] - p[0], p_dot[1] - p[1]]
-
-        """
-        # pに対応した特徴マップを取り出す
-        map_on_p = co_map[p[0], p[1]]
-        # TODO
-        '''
-        #####TODO#########
-        テンプレートのパッディングまで考慮してゼロ埋めマップ作成
-        →存在している特徴マップを埋め込み
-        →これまでと同じアルゴリズムで動くように余計なパディングを削除
-        '''
-        # TODO
         # 端対策にゼロパディングする
         map_on_p_padded = self.Padding(torch.from_numpy(map_on_p[None])).numpy()[0]
         # p_dot周辺の3×3を取り出す
@@ -82,12 +60,13 @@ class MatchingV2():
         # p_dot, 新たな相関値を返す
         # print(p_dot[0] - 1 + 1, p_dot[0] + 2 + 1, p_dot[1] - 1 + 1, p_dot[1] + 2 + 1, co_map_near_p_dot, co_map_near_p_dot)
         return p_dot[0] + m[0] - 1, p_dot[1] + m[1] - 1, co_map_near_p_dot[m[0], m[1]] + map_on_p[p_dot[0], p_dot[1]]
-        """
 
     def _initial_move_map(self):
         '''
         ピラミッドの頂点での動きのマップを計算する
         '''
+        self.N = self.obj.N_map
+
         # 各ピクセルに(対応するy, 対応するx, 相関値s)が格納されている
         map = np.zeros((3, self.obj.co_map_list[-1].shape[0], self.obj.co_map_list[-1].shape[1]))
         for i in range(map.shape[1]):
@@ -101,8 +80,9 @@ class MatchingV2():
                     map[:2, i, j].astype('int64')
                 )
         self.map = map
+        print(map)
         self.map_idx = -1
-        self.N = self.obj.N_map
+        # self.N = self.obj.N_map
 
     def _B(self):
         '''
@@ -111,6 +91,7 @@ class MatchingV2():
         '''
         # Nとiterarionとmapはこの後更新する。N > 0でwhileループで回せばいいと思う
         # N = self.obj.N_map
+        self.N = int(self.N / 2)
         N = self.N
         map_idx = self.map_idx - 1
         map_here = self.map
@@ -140,7 +121,7 @@ class MatchingV2():
                     # print(map_updated[:, p_here[0], p_here[1]])
         # 諸々の値を更新
         self.map_idx -= 1
-        self.N = int(N / 2)
+        # self.N = int(N / 2)
         del self.map
         self.map = map_updated
 
@@ -150,9 +131,21 @@ class MatchingV2():
         '''
         # N > 0であれば計算を行う
         while 1:
+            print(self.N)
             self._B()
             if self.N == 1:
                 break
+
+    def _local_index(self, idxs):
+        """
+        現在のNに応じてグローバルな座標をパッチ内の座標に変換する
+        """
+        N = self.N
+
+        i_in_here = idxs[0] % N
+        j_in_here = idxs[1] % N
+
+        return i_in_here, j_in_here
 
     def __call__(self):
         '''
