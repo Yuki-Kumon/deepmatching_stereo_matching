@@ -135,6 +135,7 @@ if __name__ == '__main__':
     """
     import cv2
 
+    """
     start = 100
     img1 = cv2.imread('./data/band3s.tif', cv2.IMREAD_GRAYSCALE)[start:start + 260, start:start + 260]
     img2 = cv2.imread('./data/band3bs.tif', cv2.IMREAD_GRAYSCALE)[start:start + 260, start:start + 260]
@@ -146,4 +147,26 @@ if __name__ == '__main__':
     print(cls.d_map.shape)
 
     cv2.imwrite('./here.png', img1)
+    cv2.imwrite('./output.png', cls.d_map * 30 + 100)
+    """
+
+    start_x = 1650
+    start_y = 3500
+    img_loaded = cv2.imread('./data/after-before-crossdis.tif')
+    img1_raw = img_loaded[:, :, 1]  # 地震前
+    img2_raw = img_loaded[:, :, 2]  # 地震後
+    img3_raw = img_loaded[:, :, 0]  # 変化マップ
+
+    img1 = img1_raw[start_y:start_y + 500, start_x:start_x + 500]
+    img2 = img2_raw[start_y:start_y + 500, start_x:start_x + 500]
+    img3 = img3_raw[start_y:start_y + 500, start_x:start_x + 500]
+
+    cls = ImageCutSolver(img1, img2, degree_map_mode='distance', window_size=15)
+    cls._cut_and_pool()
+    # cls._solver(cls.img1_sub[0], cls.img2_sub[0])
+    cls._execute_matching()
+    print(cls.d_map.shape)
+
+    cv2.imwrite('./here.png', img1[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+    cv2.imwrite('./here2.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
     cv2.imwrite('./output.png', cls.d_map * 30 + 100)
