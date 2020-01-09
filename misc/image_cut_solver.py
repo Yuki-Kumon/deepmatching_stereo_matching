@@ -12,6 +12,8 @@ Last Update :
 import numpy as np
 from tqdm import trange
 
+from PIL import Image
+
 import sys
 sys.path.append('.')
 
@@ -31,6 +33,10 @@ class ImageCutSolver():
         feature_name='cv2.TM_CCOEFF_NORMED', degree_map_mode='elevation',
         padding=False
     ):
+        """
+        image_sizeとstride: pyramidの深さに寄与
+        window_size: atomic pathの大きさに寄与
+        """
         self.img_shape = img1.shape
         assert self.img_shape == img2.shape, '2枚の画像は同じサイズ！'
         self.img1 = img1
@@ -128,6 +134,14 @@ class ImageCutSolver():
             self.stride[1] * j_here, self.stride[1] * j_here + self.image_size[1])
             """
 
+    @staticmethod
+    def image_save(path, arr):
+        """
+        numpy配列を画像として保存
+        """
+        pil_img = Image.fromarray(arr.astype(np.uint8))
+        pil_img.save(path)
+
 
 if __name__ == '__main__':
     """
@@ -167,6 +181,13 @@ if __name__ == '__main__':
     cls._execute_matching()
     print(cls.d_map.shape)
 
+    """
     cv2.imwrite('./here.png', img1[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-    cv2.imwrite('./here2.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+    cv2.imwrite('./here2.png', img2[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+    cv2.imwrite('./seikai.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
     cv2.imwrite('./output.png', cls.d_map * 30 + 100)
+    """
+    cls.image_save('./here.png', img1[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+    cls.image_save('./here2.png', img2[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+    cls.image_save('./seikai.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+    cls.image_save('./output.png', cls.d_map * 30 + 100)

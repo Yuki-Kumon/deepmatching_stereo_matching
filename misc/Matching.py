@@ -23,7 +23,7 @@ class Matching():
     原著の14式に従って計算していく
     '''
 
-    def __init__(self, Co_obj=None):
+    def __init__(self, Co_obj=None, filter_threshold_ratio=0.1, filter_window_size=3, filtering=True):
         try:
             Co_obj.co_map_list
         except AttributeError as e:
@@ -34,6 +34,10 @@ class Matching():
         self.obj = Co_obj
         self.Padding = Zero_padding()
         self.Padding.eval()
+
+        self.filter_threshold_ratio = filter_threshold_ratio
+        self.filter_window_size = filter_window_size
+        self.filtering = filtering
 
     def _calc_near_match(self, co_map, p, p_dot):
         '''
@@ -110,6 +114,8 @@ class Matching():
         self.map_idx -= 1
         self.N = int(N / 2)
         del self.map
+        if self.filtering:
+            map_updated = self._filter(map_updated)
         self.map = map_updated
 
     def _calc_match(self):
@@ -132,6 +138,28 @@ class Matching():
         # print('complete backtracking')
 
         return self.map
+
+    def _filter(self, map_here):
+        """
+        飛び値を無視する
+        """
+        # mapのサイズを調べておく(paddingなしで処理を行うので)
+        map_shape = map_here.shape
+        if map_shape[1] >= self.filter_window_size and map_shape[2] >= self.filter_window_size:
+            # 除外ピクセル数
+            exclusive_pix = int((self.filter_window_size - 1) / 2)
+            # 処理
+            d_map = np.empty((map_shape[1], map_shape[1])).astype('int64')
+            d_map2 = np.empty((map_shape[1], map_shape[1])).astype('int64')
+            for i in range(d_map.shape[0]):
+                for j in range(d_map.shape[1]):
+                    d_map[i, j] = map_here[1, i, j] - j
+                    d_map2[i, j] = map_here[0, i, j] - i
+            for i in range(exclusive_pix, map_shape[1] - exclusive_pix):
+                for j in range(exclusive_pix, map_shape[2] - exclusive_pix):
+                    map_here[1, i, j] = round(np.mean(d_map[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + j
+                    map_here[0, i, j] = round(np.mean(d_map2[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + i
+        return map_here
 
 
 class Zero_padding(nn.Module):
