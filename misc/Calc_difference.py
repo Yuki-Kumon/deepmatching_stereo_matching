@@ -27,7 +27,7 @@ class Calc_difference():
         '''
         視差画像を計算する
         '''
-        MODES = ['elevation', 'distance']
+        MODES = ['elevation', 'elevation2', 'distance']
         if mode not in MODES:
             print('please input valid mode! {} are ok. yours is \'{}\''.format(MODES, mode))
             sys.exit()
@@ -38,6 +38,10 @@ class Calc_difference():
             for i in range(d_map.shape[0]):
                 for j in range(d_map.shape[1]):
                     d_map[i, j] = j - map[1, i, j]
+        if mode == 'elevation2':
+            for i in range(d_map.shape[0]):
+                for j in range(d_map.shape[1]):
+                    d_map[i, j] = map[0, i, j] - i
         elif mode == 'distance':
             for i in range(d_map.shape[0]):
                 for j in range(d_map.shape[1]):

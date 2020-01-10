@@ -30,7 +30,7 @@ class ImageCutSolver():
     def __init__(
         self, img1, img2,
         image_size=[32, 32], stride=[32, 32], window_size=5,
-        feature_name='cv2.TM_CCOEFF_NORMED', degree_map_mode='elevation',
+        feature_name='cv2.TM_CCOEFF_NORMED', degree_map_mode=['elevation'],
         padding=False
     ):
         """
@@ -113,19 +113,22 @@ class ImageCutSolver():
         del cls
 
         # d_map = Calc_difference.cal_map(out, mode='elevation')
-        return Calc_difference.cal_map(out, mode=self.degree_map_mode)
+        return np.array([Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode])
 
     def _execute_matching(self):
         """
         小画像ごとにマッチングを行い結果を結合
         重なりなしのみ対応
         """
+        len_list = [len(self.degree_map_mode)]
+        len_list.extend([self.stride[i] * self.img_index[-1][i] + self.image_size[i] for i in range(2)])
         self.d_map = np.empty(
-            [self.stride[i] * self.img_index[-1][i] + self.image_size[i] for i in range(2)],
+            len_list,
             dtype=np.uint8)
         for idx in trange(len(self.img_index), desc='executing deepmatching'):
             i_here, j_here = self.img_index[idx]
             self.d_map[
+                :,
                 self.stride[0] * i_here:self.stride[0] * i_here + self.image_size[0],
                 self.stride[1] * j_here:self.stride[1] * j_here + self.image_size[1]
             ] = self._solver(self.img1_sub[idx], self.img2_sub[idx])
@@ -133,6 +136,11 @@ class ImageCutSolver():
             print(self.stride[0] * i_here, self.stride[0] * i_here + self.image_size[0],
             self.stride[1] * j_here, self.stride[1] * j_here + self.image_size[1])
             """
+
+    def __call__(self):
+        self._cut_and_pool()
+        self._execute_matching()
+        return self.d_map
 
     @staticmethod
     def image_save(path, arr):
@@ -175,19 +183,26 @@ if __name__ == '__main__':
     img2 = img2_raw[start_y:start_y + 500, start_x:start_x + 500]
     img3 = img3_raw[start_y:start_y + 500, start_x:start_x + 500]
 
-    cls = ImageCutSolver(img1, img2, degree_map_mode='distance', window_size=15)
-    cls._cut_and_pool()
-    # cls._solver(cls.img1_sub[0], cls.img2_sub[0])
-    cls._execute_matching()
-    print(cls.d_map.shape)
+    cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=15)
+    res_list = cls()
+    for i, name in enumerate(['distance', 'elevation', 'elevation2']):
+        cls.image_save('./' + name + '.png', res_list[i] * 30 + 100)
 
-    """
-    cv2.imwrite('./here.png', img1[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-    cv2.imwrite('./here2.png', img2[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-    cv2.imwrite('./seikai.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-    cv2.imwrite('./output.png', cls.d_map * 30 + 100)
-    """
-    cls.image_save('./here.png', img1[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-    cls.image_save('./here2.png', img2[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-    cls.image_save('./seikai.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-    cls.image_save('./output.png', cls.d_map * 30 + 100)
+    if 0:
+        cls = ImageCutSolver(img1, img2, degree_map_mode='elevation', window_size=15)
+        cls._cut_and_pool()
+        # cls._solver(cls.img1_sub[0], cls.img2_sub[0])
+        cls._execute_matching()
+        print(cls.d_map.shape)
+
+        cls.image_save('./here.png', img1[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+        cls.image_save('./here2.png', img2[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+        cls.image_save('./seikai.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
+        cls.image_save('./output.png', cls.d_map * 30 + 100)
+
+    if 0:
+        cls = ImageCutSolver(img1, img2, degree_map_mode='elevation2', window_size=15)
+        cls._cut_and_pool()
+        # cls._solver(cls.img1_sub[0], cls.img2_sub[0])
+        cls._execute_matching()
+        cls.image_save('./output2.png', cls.d_map * 30 + 100)
