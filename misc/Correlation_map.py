@@ -163,12 +163,12 @@ class Correlation_map():
         特徴マップの計算までを行う
         '''
         self._create_atomic_patch()
-        print('complete to create atomic patch')
+        # print('complete to create atomic patch')
         self._create_simple_initial_co_map()
-        print('complete to create initial correlation map')
+        # print('complete to create initial correlation map')
         self._multi_level_correlation_pyramid()
-        print('complete to create multi-level correlation pyramid')
-        print('pyramid level: {}, N={}'.format(self.iteration, self.N_map))
+        # print('complete to create multi-level correlation pyramid')
+        # print('pyramid level: {}, N={}'.format(self.iteration, self.N_map))
 
         return self.co_map_list
 
