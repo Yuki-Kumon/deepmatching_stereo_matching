@@ -23,7 +23,7 @@ class Matching():
     原著の14式に従って計算していく
     '''
 
-    def __init__(self, Co_obj=None, filter_threshold_ratio=0.1, filter_window_size=5, filtering=True):
+    def __init__(self, Co_obj=None, filter_threshold_ratio=0.1, filter_window_size=5, filtering=False):
         try:
             Co_obj.co_map_list
         except AttributeError as e:

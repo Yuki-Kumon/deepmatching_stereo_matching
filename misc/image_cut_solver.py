@@ -143,10 +143,15 @@ class ImageCutSolver():
         return self.d_map
 
     @staticmethod
-    def image_save(path, arr):
+    def image_save(path, arr, threshold=[100, 190]):
         """
         numpy配列を画像として保存
+        スレッショルド指定可能
         """
+        print(np.max(arr))
+        print(np.min(arr))
+        arr = np.where(arr > threshold[1], threshold[1], arr)
+        arr = np.where(arr < threshold[0], threshold[0], arr)
         pil_img = Image.fromarray(arr.astype(np.uint8))
         pil_img.save(path)
 
@@ -173,17 +178,20 @@ if __name__ == '__main__':
     """
 
     start_x = 1650
-    start_y = 3500
+    start_y = 2500
+    win_wid = 1000
     img_loaded = cv2.imread('./data/after-before-crossdis.tif')
     img1_raw = img_loaded[:, :, 1]  # 地震前
     img2_raw = img_loaded[:, :, 2]  # 地震後
     img3_raw = img_loaded[:, :, 0]  # 変化マップ
 
-    img1 = img1_raw[start_y:start_y + 500, start_x:start_x + 500]
-    img2 = img2_raw[start_y:start_y + 500, start_x:start_x + 500]
-    img3 = img3_raw[start_y:start_y + 500, start_x:start_x + 500]
+    img1 = img1_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
+    img2 = img2_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
+    img3 = img3_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
 
     cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=15)
+
+    # cls.image_save('./here.png', img1)
     res_list = cls()
     for i, name in enumerate(['distance', 'elevation', 'elevation2']):
         cls.image_save('./output/igarss/' + name + '.png', res_list[i] * 30 + 100)
