@@ -186,7 +186,7 @@ if __name__ == '__main__':
     cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=15)
     res_list = cls()
     for i, name in enumerate(['distance', 'elevation', 'elevation2']):
-        cls.image_save('./' + name + '.png', res_list[i] * 30 + 100)
+        cls.image_save('./output/igarss/' + name + '.png', res_list[i] * 30 + 100)
 
     if 0:
         cls = ImageCutSolver(img1, img2, degree_map_mode='elevation', window_size=15)
