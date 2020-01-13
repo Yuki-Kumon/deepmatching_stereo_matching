@@ -113,7 +113,7 @@ class ImageCutSolver():
         del cls
 
         # d_map = Calc_difference.cal_map(out, mode='elevation')
-        return np.array([Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode])
+        return np.array([Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode]), out[2, :, :]
 
     def _execute_matching(self):
         """
@@ -125,12 +125,21 @@ class ImageCutSolver():
         self.d_map = np.empty(
             len_list,
             dtype=np.uint8)
+        self.correlation_map = np.empty(
+            [self.stride[i] * self.img_index[-1][i] + self.image_size[i] for i in range(2)],
+            dtype=float)
         for idx in trange(len(self.img_index), desc='executing deepmatching'):
             i_here, j_here = self.img_index[idx]
-            self.d_map[
-                :,
-                self.stride[0] * i_here:self.stride[0] * i_here + self.image_size[0],
-                self.stride[1] * j_here:self.stride[1] * j_here + self.image_size[1]
+            [
+                self.d_map[
+                    :,
+                    self.stride[0] * i_here:self.stride[0] * i_here + self.image_size[0],
+                    self.stride[1] * j_here:self.stride[1] * j_here + self.image_size[1]
+                ],
+                self.correlation_map[
+                    self.stride[0] * i_here:self.stride[0] * i_here + self.image_size[0],
+                    self.stride[1] * j_here:self.stride[1] * j_here + self.image_size[1]
+                ]
             ] = self._solver(self.img1_sub[idx], self.img2_sub[idx])
             """
             print(self.stride[0] * i_here, self.stride[0] * i_here + self.image_size[0],
@@ -140,7 +149,7 @@ class ImageCutSolver():
     def __call__(self):
         self._cut_and_pool()
         self._execute_matching()
-        return self.d_map
+        return self.d_map, self.correlation_map
 
     @staticmethod
     def image_save(path, arr, threshold=[100, 190]):
@@ -189,28 +198,16 @@ if __name__ == '__main__':
     img2 = img2_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
     img3 = img3_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
 
-    cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=15)
+    cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=9, image_size=[32, 32], stride=[28, 28])
 
     # cls.image_save('./here.png', img1)
-    res_list = cls()
+    res_list, correlation_map = cls()
     for i, name in enumerate(['distance', 'elevation', 'elevation2']):
         cls.image_save('./output/igarss/' + name + '.png', res_list[i] * 30 + 100)
-
-    if 0:
-        cls = ImageCutSolver(img1, img2, degree_map_mode='elevation', window_size=15)
-        cls._cut_and_pool()
-        # cls._solver(cls.img1_sub[0], cls.img2_sub[0])
-        cls._execute_matching()
-        print(cls.d_map.shape)
-
-        cls.image_save('./here.png', img1[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-        cls.image_save('./here2.png', img2[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-        cls.image_save('./seikai.png', img3[:cls.d_map.shape[0], :cls.d_map.shape[1]])
-        cls.image_save('./output.png', cls.d_map * 30 + 100)
-
-    if 0:
-        cls = ImageCutSolver(img1, img2, degree_map_mode='elevation2', window_size=15)
-        cls._cut_and_pool()
-        # cls._solver(cls.img1_sub[0], cls.img2_sub[0])
-        cls._execute_matching()
-        cls.image_save('./output2.png', cls.d_map * 30 + 100)
+        np.save('./output/igarss/' + name, res_list[i])
+    cls.image_save('./output/igarss/' + 'correlation' + '.png', correlation_map * 30 + 100)
+    np.save('./output/igarss/' + 'correlation', correlation_map)
+    exclusive_pix = [16, 16]
+    ImageCutSolver.image_save('./output/igarss/here.png', img1[exclusive_pix[0]:-exclusive_pix[0], exclusive_pix[1]:-exclusive_pix[1]], threshold=[0, 255])
+    ImageCutSolver.image_save('./output/igarss/here2.png', img2[exclusive_pix[0]:-exclusive_pix[0], exclusive_pix[1]:-exclusive_pix[1]], threshold=[0, 255])
+    ImageCutSolver.image_save('./output/igarss/seikai.png', img3[exclusive_pix[0]:-exclusive_pix[0], exclusive_pix[1]:-exclusive_pix[1]], threshold=[0, 255])

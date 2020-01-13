@@ -3,6 +3,7 @@ data
 output
 # for_igarss
 test.py
+trash
 
 # codes to create images for paper
 image_concat*.py
