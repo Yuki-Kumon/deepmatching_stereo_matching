@@ -121,12 +121,13 @@ class ImageCutSolver():
         重なりなしのみ対応
         """
         len_list = [len(self.degree_map_mode)]
-        len_list.extend([self.stride[i] * self.img_index[-1][i] + self.image_size[i] for i in range(2)])
+        size_list = [self.stride[i] * self.img_index[-1][i] + self.image_size[i] for i in range(2)]
+        len_list.extend(size_list)
         self.d_map = np.empty(
             len_list,
             dtype=np.uint8)
-        self.correlation_map = np.empty(
-            [self.stride[i] * self.img_index[-1][i] + self.image_size[i] for i in range(2)],
+        self.out_map = np.empty(
+            size_list,
             dtype=float)
         for idx in trange(len(self.img_index), desc='executing deepmatching'):
             i_here, j_here = self.img_index[idx]
@@ -136,7 +137,7 @@ class ImageCutSolver():
                     self.stride[0] * i_here:self.stride[0] * i_here + self.image_size[0],
                     self.stride[1] * j_here:self.stride[1] * j_here + self.image_size[1]
                 ],
-                self.correlation_map[
+                self.out_map[
                     self.stride[0] * i_here:self.stride[0] * i_here + self.image_size[0],
                     self.stride[1] * j_here:self.stride[1] * j_here + self.image_size[1]
                 ]
@@ -149,7 +150,7 @@ class ImageCutSolver():
     def __call__(self):
         self._cut_and_pool()
         self._execute_matching()
-        return self.d_map, self.correlation_map
+        return self.d_map, self.out_map
 
     @staticmethod
     def image_save(path, arr, threshold=[100, 190]):
@@ -198,12 +199,12 @@ if __name__ == '__main__':
     img2 = img2_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
     img3 = img3_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
 
-    cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=9, image_size=[32, 32], stride=[28, 28])
+    cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=15, image_size=[32, 32], stride=[28, 28])
 
     # cls.image_save('./here.png', img1)
     res_list, correlation_map = cls()
     for i, name in enumerate(['distance', 'elevation', 'elevation2']):
-        cls.image_save('./output/igarss/' + name + '.png', res_list[i] * 30 + 100)
+        cls.image_save('./output/igarss/' + name + '.png', res_list[i] * 90 + 100)
         np.save('./output/igarss/' + name, res_list[i])
     cls.image_save('./output/igarss/' + 'correlation' + '.png', correlation_map * 30 + 100)
     np.save('./output/igarss/' + 'correlation', correlation_map)
