@@ -33,19 +33,19 @@ class Calc_difference():
             sys.exit()
         # print('mode: {}'.format(mode))
 
-        d_map = np.empty((map.shape[1], map.shape[2])).astype('int64')
+        d_map = np.empty((map.shape[1], map.shape[2])).astype('float')
         if mode == 'elevation':
             for i in range(d_map.shape[0]):
                 for j in range(d_map.shape[1]):
-                    d_map[i, j] = j - map[1, i, j]
+                    d_map[i, j] = float(j) - map[1, i, j]
         if mode == 'elevation2':
             for i in range(d_map.shape[0]):
                 for j in range(d_map.shape[1]):
-                    d_map[i, j] = map[0, i, j] - i
+                    d_map[i, j] = float(i) - map[0, i, j]
         elif mode == 'distance':
             for i in range(d_map.shape[0]):
                 for j in range(d_map.shape[1]):
-                    d_map[i, j] = np.linalg.norm(np.array([i, j]).astype('float') - map[:2, i, j])
+                    d_map[i, j] = float(np.linalg.norm(np.array([i, j]).astype('float') - map[:2, i, j]))
         return d_map
 
 

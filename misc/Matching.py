@@ -23,7 +23,7 @@ class Matching():
     原著の14式に従って計算していく
     '''
 
-    def __init__(self, Co_obj=None, filter_threshold_ratio=0.1, filter_window_size=5, filtering=False):
+    def __init__(self, Co_obj=None, filter_threshold_ratio=0.1, filter_window_size=5, filtering=False, sub_pix=True):
         try:
             Co_obj.co_map_list
         except AttributeError as e:
@@ -38,6 +38,7 @@ class Matching():
         self.filter_threshold_ratio = filter_threshold_ratio
         self.filter_window_size = filter_window_size
         self.filtering = filtering
+        self.sub_pix = sub_pix
 
     def _calc_near_match(self, co_map, p, p_dot):
         '''
@@ -128,6 +129,34 @@ class Matching():
             if self.N == 1:
                 break
 
+    def _sub_pix_cal(self):
+        '''
+        サブピクセル近似
+        最終的なマッチング結果と最初に計算した相関マップを用いる
+        '''
+        co_map_last = self.obj.co_map_list[0]
+        for i in range(self.map.shape[1]):
+            for j in range(self.map.shape[2]):
+                corresponding = [int(i) for i in self.map[:2, i, j]]
+                # 縦について近傍の点から小数のずれを計算
+                d_x = i - self.map[0, i, j]
+                try:
+                    r0 = co_map_last[i, j, corresponding[0], corresponding[1]]
+                    r1 = co_map_last[i, j, corresponding[0] + 1, corresponding[1]]
+                    r_ = co_map_last[i, j, corresponding[0] - 1, corresponding[1]]
+                    self.map[0, i, j] = i + d_x - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
+                except:
+                    self.map[0, i, j] = i + d_x
+                # 横について近傍の点から小数のずれを計算
+                d_y = j - self.map[1, i, j]
+                try:
+                    r0 = co_map_last[i, j, corresponding[0], corresponding[1]]
+                    r1 = co_map_last[i, j, corresponding[0], corresponding[1] + 1]
+                    r_ = co_map_last[i, j, corresponding[0], corresponding[1] - 1]
+                    self.map[1, i, j] = j + d_y - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
+                except:
+                    self.map[1, i, j] = j + d_y
+
     def __call__(self):
         '''
         multi-level correlation pyramidからマッチング計算を行う
@@ -136,6 +165,8 @@ class Matching():
         # print('complete to create initial matching map')
         self._calc_match()
         # print('complete backtracking')
+        if self.sub_pix:
+            self._sub_pix_cal()
 
         return self.map
 

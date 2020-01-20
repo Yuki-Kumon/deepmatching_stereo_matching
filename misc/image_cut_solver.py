@@ -20,6 +20,7 @@ sys.path.append('.')
 from misc.Correlation_map import Correlation_map
 from misc.Matching import Matching
 from misc.Calc_difference import Calc_difference
+# from misc.sub_pix_cal import *
 
 
 class ImageCutSolver():
@@ -31,7 +32,8 @@ class ImageCutSolver():
         self, img1, img2,
         image_size=[32, 32], stride=[32, 32], window_size=5,
         feature_name='cv2.TM_CCOEFF_NORMED', degree_map_mode=['elevation'],
-        padding=False
+        padding=False,
+        sub_pix=True
     ):
         """
         image_sizeとstride: pyramidの深さに寄与
@@ -56,6 +58,7 @@ class ImageCutSolver():
         self.len = [int(np.floor((self.img_shape[i] - self.trimed_size[i]) / self.stride[i])) for i in range(2)]
 
         self.padding = padding
+        self.sub_pix = sub_pix
 
     def _padding(self):
         img1 = self.img1
@@ -106,13 +109,22 @@ class ImageCutSolver():
         co_cls = Correlation_map(solve_image, solve_template, window_size=self.window_size, feature_name=self.feature_name)
         co_cls()
 
-        cls = Matching(co_cls)
+        cls = Matching(co_cls, sub_pix=self.sub_pix)
         out = cls()
 
         del co_cls
         del cls
 
+        results = [Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode]
+
         # d_map = Calc_difference.cal_map(out, mode='elevation')
+        """
+        if self.sub_pix:
+            direction_list = [1 if name == 'elevation' else 0 for name in self.degree_map_mode]
+            return np.array([sub_pix_cal(Calc_difference.cal_map(out, mode=mode_here), out[2, :, :], direction=direction_list[i]) for (i, mode_here) in enumerate(self.degree_map_mode)]), out[2, :, :]
+        else:
+            return np.array([Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode]), out[2, :, :]
+        """
         return np.array([Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode]), out[2, :, :]
 
     def _execute_matching(self):
@@ -123,9 +135,14 @@ class ImageCutSolver():
         len_list = [len(self.degree_map_mode)]
         size_list = [self.stride[i] * self.img_index[-1][i] + self.image_size[i] for i in range(2)]
         len_list.extend(size_list)
+        """
         self.d_map = np.empty(
             len_list,
             dtype=np.uint8)
+        """
+        self.d_map = np.empty(
+            len_list,
+            dtype=float)
         self.out_map = np.empty(
             size_list,
             dtype=float)
@@ -199,7 +216,7 @@ if __name__ == '__main__':
     img2 = img2_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
     img3 = img3_raw[start_y:start_y + win_wid, start_x:start_x + win_wid]
 
-    cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=15, image_size=[32, 32], stride=[28, 28])
+    cls = ImageCutSolver(img1, img2, degree_map_mode=['distance', 'elevation', 'elevation2'], window_size=15, image_size=[16, 16], stride=[12, 12])
 
     # cls.image_save('./here.png', img1)
     res_list, correlation_map = cls()
