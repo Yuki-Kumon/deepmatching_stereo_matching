@@ -1,65 +1,24 @@
 # -*- coding: utf-8 -*-
 
 """
-ガウス=ザイデル法のループ計算です。
-Usage :
-    $ python setup.py build_ext --inplace
+ガウスザイデル法を用いたループ計算
 Author :
     Yuki Kumon
 Last Update :
-    2018-11-19
+    2020-05-04
 """
 
-
-# cython: boundscheck=False
-# cython: wraparound=False
 
 import numpy as np
-cimport numpy as np
-cimport cython
-
-ctypedef np.float64_t DOUBLE_t
-ctypedef np.int_t INT_t
-
-"""
-# ガウズ=ザイデル法の計算ループ
-def optimize_loop(np.ndarray[DOUBLE_t, ndim=2] img_dis, np.ndarray[DOUBLE_t, ndim=2] coefficient, float alpha, int exclusion, np.ndarray[INT_t, ndim=1]  size):
-    # ループ用変数
-    cdef int i, j
-    # 計算用変数
-    cdef float error, a, d_new
-    error = 0.0
-    for i in range(exclusion, size[0] - exclusion - 1):
-        for j in range(exclusion, size[1] - exclusion - 1):
-            sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
-            # a = coefficient[i, j] * (check[i, j] + 1.0)
-            a = coefficient[i, j]
-            d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
-            img_dis[i, j] = d_new
-    # 逆から
-    for i in range(exclusion, size[0] - exclusion - 1):
-        for j in range(exclusion, size[1] - exclusion - 1):
-            i = size[0] - i - 1
-            j = size[1] - j - 1
-            sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
-            a = coefficient[i, j]
-            d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
-            error += abs(img_dis[i, j] - d_new)
-            # print(str(img_dis[i, j]) + ',' + str(sum_d) + ',' + str(d_new) + ',' + str(coefficient[i, j]) + ',' + str(error))
-            img_dis[i, j] = d_new
-    return img_dis, error
-"""
 
 
 # ガウズ=ザイデル法の計算ループ、横方向(バイラテラルフィルターバージョン)
-def optimize_loop_bilateral_horizon(np.ndarray[DOUBLE_t, ndim=2] img_dis, np.ndarray[DOUBLE_t, ndim=4] color_weight_matrix, np.ndarray[DOUBLE_t, ndim=2] gausian_weight, np.ndarray[DOUBLE_t, ndim=2] coefficient, float alpha, int exclusion, np.ndarray[INT_t, ndim=1] size):
-    # ループ用変数
-    cdef int i, j, w
-    w = exclusion * 2 + 1
-    # 計算用変数
-    cdef float error, d_new
-    cdef np.ndarray[DOUBLE_t, ndim=2] color_weight = np.zeros_like(gausian_weight)
-    cdef np.ndarray[DOUBLE_t, ndim=2] sub_img = np.zeros_like(gausian_weight)
+def optimize_loop_bilateral_horizon(img_dis, color_weight_matrix, gausian_weight, coefficient, alpha, exclusion, size):
+    # w = exclusion * 2 + 1
+    color_weight = np.zeros_like(gausian_weight)
+    sub_img = np.zeros_like(gausian_weight)
+
+    error = 0.0
 
     for i in range(exclusion, size[0] - exclusion - 1):
         for j in range(exclusion, size[1] - exclusion - 1):
@@ -78,14 +37,12 @@ def optimize_loop_bilateral_horizon(np.ndarray[DOUBLE_t, ndim=2] img_dis, np.nda
 
 
 # ガウズ=ザイデル法の計算ループ、縦方向(バイラテラルフィルターバージョン)
-def optimize_loop_bilateral_vertical(np.ndarray[DOUBLE_t, ndim=2] img_dis, np.ndarray[DOUBLE_t, ndim=4] color_weight_matrix, np.ndarray[DOUBLE_t, ndim=2] gausian_weight, np.ndarray[DOUBLE_t, ndim=2] coefficient, float alpha, int exclusion, np.ndarray[INT_t, ndim=1] size):
-    # ループ用変数
-    cdef int i, j, w
-    w = exclusion * 2 + 1
-    # 計算用変数
-    cdef float error, d_new
-    cdef np.ndarray[DOUBLE_t, ndim=2] color_weight = np.zeros_like(gausian_weight)
-    cdef np.ndarray[DOUBLE_t, ndim=2] sub_img = np.zeros_like(gausian_weight)
+def optimize_loop_bilateral_vertical(img_dis, color_weight_matrix, gausian_weight, coefficient, alpha, exclusion, size):
+    # w = exclusion * 2 + 1
+    color_weight = np.zeros_like(gausian_weight)
+    sub_img = np.zeros_like(gausian_weight)
+
+    error = 0.0
 
     for i in range(exclusion, size[0] - exclusion - 1):
         for j in range(exclusion, size[1] - exclusion - 1):
@@ -104,16 +61,12 @@ def optimize_loop_bilateral_vertical(np.ndarray[DOUBLE_t, ndim=2] img_dis, np.nd
 
 
 # 重み付け配列を作成
-def make_weight(np.ndarray[DOUBLE_t, ndim=2] guide_img, int exclusion, np.ndarray[INT_t, ndim=1] size, np.ndarray[DOUBLE_t, ndim=1] sigma):
-    # ループ用変数
-    cdef int i, j, w
+def make_weight(guide_img, exclusion, size, sigma):
     w = exclusion * 2 + 1
-    # 計算用変数
-    cdef float error, d_new
-    cdef np.ndarray[DOUBLE_t, ndim=2] gausian_weight = np.zeros([w, w])
-    cdef np.ndarray[DOUBLE_t, ndim=2] color_weight = np.zeros_like(gausian_weight)
-    cdef np.ndarray[DOUBLE_t, ndim=2] sub_guide = np.zeros_like(gausian_weight)
-    cdef np.ndarray[DOUBLE_t, ndim=4] color_weight_matrix = np.zeros([size[0] - exclusion, size[1] - exclusion, w, w])
+    gausian_weight = np.zeros([w, w])
+    color_weight = np.zeros_like(gausian_weight)
+    sub_guide = np.zeros_like(gausian_weight)
+    color_weight_matrix = np.zeros([size[0] - exclusion, size[1] - exclusion, w, w])
 
     # 空間の重み付け用の配列を準備しておく
     for i in range(w):
