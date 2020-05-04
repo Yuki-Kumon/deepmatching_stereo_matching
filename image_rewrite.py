@@ -47,7 +47,7 @@ def _generater(path='./output/igarss/raw/'):
     '''
     ELEVS = ['elevation.npy', 'elevation2.npy']
     NEGAS = [True, False]
-    # NEGAS = [False, True]
+    NEGAS = [False, True]
 
     return [os.path.join(path, here) for here in ELEVS], NEGAS
 
