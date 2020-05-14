@@ -23,7 +23,14 @@ class Matching():
     原著の14式に従って計算していく
     '''
 
-    def __init__(self, Co_obj=None, filter_threshold_ratio=0.1, filter_window_size=5, filtering=False, sub_pix=True):
+    def __init__(
+        self,
+        Co_obj=None,
+        filter_window_size=5,
+        filtering=False,
+        filtering_layer=[0, 3],
+        sub_pix=True
+    ):
         try:
             Co_obj.co_map_list
         except AttributeError as e:
@@ -35,7 +42,7 @@ class Matching():
         self.Padding = Zero_padding()
         self.Padding.eval()
 
-        self.filter_threshold_ratio = filter_threshold_ratio
+        self.filtering_layer = filtering_layer
         self.filter_window_size = filter_window_size
         self.filtering = filtering
         self.sub_pix = sub_pix
@@ -115,7 +122,7 @@ class Matching():
         self.map_idx -= 1
         self.N = int(N / 2)
         del self.map
-        if self.filtering:
+        if self.filtering and self.filtering_layer[0]:
             map_updated = self._filter(map_updated)
         self.map = map_updated
 
@@ -180,14 +187,17 @@ class Matching():
             # 除外ピクセル数
             exclusive_pix = int((self.filter_window_size - 1) / 2)
             # 処理
+            # 移動量マップ用の配列
             d_map = np.empty((map_shape[1], map_shape[1])).astype('int64')
             d_map2 = np.empty((map_shape[1], map_shape[1])).astype('int64')
             for i in range(d_map.shape[0]):
                 for j in range(d_map.shape[1]):
+                    # 移動量マップへ変換
                     d_map[i, j] = map_here[1, i, j] - j
                     d_map2[i, j] = map_here[0, i, j] - i
             for i in range(exclusive_pix, map_shape[1] - exclusive_pix):
                 for j in range(exclusive_pix, map_shape[2] - exclusive_pix):
+                    # 近傍のピクセルの平均値で更新する
                     map_here[1, i, j] = round(np.mean(d_map[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + j
                     map_here[0, i, j] = round(np.mean(d_map2[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + i
         return map_here
