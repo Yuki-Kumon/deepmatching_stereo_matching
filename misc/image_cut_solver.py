@@ -60,6 +60,8 @@ class ImageCutSolver():
         self.padding = padding
         self.sub_pix = sub_pix
 
+        self.log_flg = True
+
     def _padding(self):
         img1 = self.img1
         img2 = self.img2
@@ -108,6 +110,10 @@ class ImageCutSolver():
         """
         co_cls = Correlation_map(solve_image, solve_template, window_size=self.window_size, feature_name=self.feature_name)
         co_cls()
+        if self.log_flg:
+            print('complete to create multi-level correlation pyramid')
+            print('pyramid level: {}, N={}'.format(co_cls.iteration, co_cls.N_map))
+            self.log_flg = False
 
         cls = Matching(co_cls, sub_pix=self.sub_pix)
         out = cls()

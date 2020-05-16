@@ -28,7 +28,7 @@ class Matching():
         Co_obj=None,
         filter_window_size=5,
         filtering=False,
-        filtering_layer=[0, 3],
+        filtering_num=3,
         sub_pix=True
     ):
         try:
@@ -42,7 +42,7 @@ class Matching():
         self.Padding = Zero_padding()
         self.Padding.eval()
 
-        self.filtering_layer = filtering_layer
+        self.filtering_num = filtering_num
         self.filter_window_size = filter_window_size
         self.filtering = filtering
         self.sub_pix = sub_pix
@@ -80,6 +80,9 @@ class Matching():
                 map[:2, i, j] = i, j
                 # 初めの移動量を計算(これは必要なさそうではある)
                 map[:, i, j] = self._calc_near_match(self.obj.co_map_list[-1], (i, j), map[:2, i, j].astype('int64'))
+        if self.filtering and self.filtering_num > 0:
+            map = self._filter(map)
+            self.filtering_num -= 1
         self.map = map
         self.map_idx = -1
         self.N = self.obj.N_map
@@ -122,8 +125,9 @@ class Matching():
         self.map_idx -= 1
         self.N = int(N / 2)
         del self.map
-        if self.filtering and self.filtering_layer[0]:
+        if self.filtering and self.filtering_num > 0:
             map_updated = self._filter(map_updated)
+            self.filtering_num -= 1
         self.map = map_updated
 
     def _calc_match(self):
