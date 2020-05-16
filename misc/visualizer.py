@@ -12,7 +12,7 @@ Last Update :
 import numpy as np
 
 
-class Visalizer():
+class Visualizer():
     '''
     画像の書き出し用のクラス
     '''
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     print('mean', np.mean(d_map1))
 
     # 処理
-    d_map1 = Visalizer.strech_for_write(d_map1, range=[-2, 5])
+    d_map1 = Visualizer.strech_for_write(d_map1, range=[-2, 5])
     print('min', np.min(d_map1))
     print('max', np.max(d_map1))
     print('mean', np.mean(d_map1))
