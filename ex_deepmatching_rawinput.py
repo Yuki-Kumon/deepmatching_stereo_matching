@@ -29,6 +29,9 @@ flags.DEFINE_integer('window_size', 15, '')
 flags.DEFINE_list('crop_size', '32, 32', '')
 flags.DEFINE_list('stride', '28, 28', '')
 flags.DEFINE_bool('sub_pix', False, '')
+flags.DEFINE_bool('filtering', False, '')
+flags.DEFINE_integer('filtering_window_size', 3, '')
+flags.DEFINE_integer('filtering_num', 3, '')
 
 
 def main(_argv):
@@ -61,7 +64,10 @@ def main(_argv):
         window_size=FLAGS.window_size,
         image_size=crop_size,
         stride=stride,
-        sub_pix=FLAGS.sub_pix
+        sub_pix=FLAGS.sub_pix,
+        filtering=FLAGS.filtering,
+        filtering_window_size=FLAGS.filtering_window_size,
+        filtering_num=FLAGS.filtering_num
     )
 
     res_list, correlation_map = solver()

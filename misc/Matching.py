@@ -26,7 +26,7 @@ class Matching():
     def __init__(
         self,
         Co_obj=None,
-        filter_window_size=5,
+        filter_window_size=3,
         filtering=False,
         filtering_num=3,
         sub_pix=True

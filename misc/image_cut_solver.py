@@ -33,7 +33,10 @@ class ImageCutSolver():
         image_size=[32, 32], stride=[32, 32], window_size=5,
         feature_name='cv2.TM_CCOEFF_NORMED', degree_map_mode=['elevation'],
         padding=False,
-        sub_pix=True
+        sub_pix=True,
+        filtering=False,
+        filtering_window_size=3,
+        filtering_num=3
     ):
         """
         image_sizeとstride: pyramidの深さに寄与
@@ -59,6 +62,9 @@ class ImageCutSolver():
 
         self.padding = padding
         self.sub_pix = sub_pix
+        self.filtering = filtering
+        self.filtering_window_size = filtering_window_size
+        self.filtering_num = filtering_num
 
         self.log_flg = True
 
@@ -115,13 +121,13 @@ class ImageCutSolver():
             print('pyramid level: {}, N={}'.format(co_cls.iteration, co_cls.N_map))
             self.log_flg = False
 
-        cls = Matching(co_cls, sub_pix=self.sub_pix)
+        cls = Matching(co_cls, sub_pix=self.sub_pix, filtering=self.filtering, filter_window_size=self.filtering_window_size, filtering_num=self.filtering_num)
         out = cls()
 
         del co_cls
         del cls
 
-        results = [Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode]
+        # results = [Calc_difference.cal_map(out, mode=mode_here) for mode_here in self.degree_map_mode]
 
         # d_map = Calc_difference.cal_map(out, mode='elevation')
         """
