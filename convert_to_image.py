@@ -19,7 +19,7 @@ from absl import app, flags, logging
 from absl.flags import FLAGS
 
 flags.DEFINE_list('array_path', './output/igarss/raw/elevation.npy, ./output/igarss/raw/elevation2.npy', 'numpy array path list')
-flags.DEFINE_list('strech_range', '-2, 5, -4, 3', 'strech range for input array')
+flags.DEFINE_list('strech_range', '-1.5, 5.5, -5.5, 1.5', 'strech range for input array')
 flags.DEFINE_string('output_path', './output/igarss/raw/temp_out', 'output_path')
 flags.DEFINE_list('output_name', 'elevation.png, elevation2.png', 'output file name')
 
@@ -32,14 +32,19 @@ def main(_argv):
         # load numpy array
         d_map = np.load(path)
         d_map = d_map.astype(float)
-        print('file {} is loaded'.format(path))
+        print('===file {} is loaded==='.format(path))
+        print('===original data===')
         print('min', np.min(d_map))
         print('max', np.max(d_map))
         print('mean', np.mean(d_map))
 
         # conver
-        range = [int(x) for x in FLAGS.strech_range[2 * i: 2 * i + 2]]
+        range = [float(x) for x in FLAGS.strech_range[2 * i: 2 * i + 2]]
         d_map = Visualizer.strech_for_write(d_map, range=range)
+        print('===streched data===')
+        print('min', np.min(d_map))
+        print('max', np.max(d_map))
+        print('mean', np.mean(d_map))
 
         # save
         ImageCutSolver.image_save(os.path.join(FLAGS.output_path, FLAGS.output_name[i]), d_map, threshold=[0, 255])

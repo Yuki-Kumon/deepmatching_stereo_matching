@@ -181,8 +181,8 @@ class ImageCutSolver():
         numpy配列を画像として保存
         スレッショルド指定可能
         """
-        print(np.max(arr))
-        print(np.min(arr))
+        # print(np.max(arr))
+        # print(np.min(arr))
         arr = np.where(arr > threshold[1], threshold[1], arr)
         arr = np.where(arr < threshold[0], threshold[0], arr)
         pil_img = Image.fromarray(arr.astype(np.uint8))
