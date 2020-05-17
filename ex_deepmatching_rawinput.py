@@ -26,12 +26,12 @@ flags.DEFINE_list('cut_start', '2050, 1600', '')
 flags.DEFINE_list('cut_size', '1000, 1000', '')
 
 flags.DEFINE_integer('window_size', 15, '')
-flags.DEFINE_list('crop_size', '32, 32', '')
-flags.DEFINE_list('stride', '28, 28', '')
+flags.DEFINE_list('crop_size', '64, 64', '')
+flags.DEFINE_list('stride', '60, 60', '')
 flags.DEFINE_bool('sub_pix', False, '')
 flags.DEFINE_bool('filtering', False, '')
 flags.DEFINE_integer('filtering_window_size', 3, '')
-flags.DEFINE_integer('filtering_num', 3, '')
+flags.DEFINE_integer('filtering_num', 4, '')
 
 
 def main(_argv):
