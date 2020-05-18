@@ -5,7 +5,7 @@ numpy arrayを画像へと変換する。
 Author :
     Yuki Kumon
 Last Update :
-    2020-05-16
+    2020-05-18
 """
 
 
@@ -28,6 +28,10 @@ def main(_argv):
     '''
     main function
     '''
+    # make dir
+    if not os.path.exists(FLAGS.output_path):
+        os.makedirs(FLAGS.output_path)
+
     for i, path in enumerate(FLAGS.array_path):
         # load numpy array
         d_map = np.load(path)

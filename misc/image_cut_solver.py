@@ -5,7 +5,7 @@ image cut tool
 Author :
     Yuki Kumon
 Last Update :
-    2019-12-22
+    2020-05-18
 """
 
 
@@ -36,7 +36,8 @@ class ImageCutSolver():
         sub_pix=True,
         filtering=False,
         filtering_window_size=3,
-        filtering_num=3
+        filtering_num=3,
+        filtering_mode='average'
     ):
         """
         image_sizeとstride: pyramidの深さに寄与
@@ -65,6 +66,7 @@ class ImageCutSolver():
         self.filtering = filtering
         self.filtering_window_size = filtering_window_size
         self.filtering_num = filtering_num
+        self.filtering_mode = filtering_mode
 
         self.log_flg = True
 
@@ -121,7 +123,7 @@ class ImageCutSolver():
             print('pyramid level: {}, N={}'.format(co_cls.iteration, co_cls.N_map))
             self.log_flg = False
 
-        cls = Matching(co_cls, sub_pix=self.sub_pix, filtering=self.filtering, filter_window_size=self.filtering_window_size, filtering_num=self.filtering_num)
+        cls = Matching(co_cls, sub_pix=self.sub_pix, filtering=self.filtering, filter_window_size=self.filtering_window_size, filtering_num=self.filtering_num, filtering_mode=self.filtering_mode)
         out = cls()
 
         del co_cls

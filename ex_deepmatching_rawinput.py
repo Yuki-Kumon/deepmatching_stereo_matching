@@ -5,7 +5,7 @@ execute extended deepmatching with raw file input
 Author :
     Yuki Kumon
 Last Update :
-    2020-01-17
+    2020-01-18
 """
 
 
@@ -32,6 +32,7 @@ flags.DEFINE_bool('sub_pix', False, '')
 flags.DEFINE_bool('filtering', False, '')
 flags.DEFINE_integer('filtering_window_size', 3, '')
 flags.DEFINE_integer('filtering_num', 4, '')
+flags.DEFINE_string('filtering_mode', 'median', '')
 
 
 def main(_argv):
@@ -67,7 +68,8 @@ def main(_argv):
         sub_pix=FLAGS.sub_pix,
         filtering=FLAGS.filtering,
         filtering_window_size=FLAGS.filtering_window_size,
-        filtering_num=FLAGS.filtering_num
+        filtering_num=FLAGS.filtering_num,
+        filtering_mode=FLAGS.filtering_mode
     )
 
     res_list, correlation_map = solver()

@@ -5,7 +5,7 @@ matching on correlation map
 Author :
     Yuki Kumon
 Last Update :
-    2019-09-24
+    2020-05-18
 """
 
 
@@ -29,6 +29,7 @@ class Matching():
         filter_window_size=3,
         filtering=False,
         filtering_num=3,
+        filtering_mode='median',
         sub_pix=True
     ):
         try:
@@ -38,6 +39,9 @@ class Matching():
             print('please run \'obj=Correlation_map()\' and \'obj()\' first.')
             sys.exit()
 
+        MODES = ['average', 'median']
+        assert filtering_mode in MODES, 'invalid filtering mode is input!: {}'.format(filtering_mode)
+
         self.obj = Co_obj
         self.Padding = Zero_padding()
         self.Padding.eval()
@@ -45,6 +49,7 @@ class Matching():
         self.filtering_num = filtering_num
         self.filter_window_size = filter_window_size
         self.filtering = filtering
+        self.filtering_mode = filtering_mode
         self.sub_pix = sub_pix
 
     def _calc_near_match(self, co_map, p, p_dot):
@@ -199,11 +204,19 @@ class Matching():
                     # 移動量マップへ変換
                     d_map[i, j] = map_here[1, i, j] - j
                     d_map2[i, j] = map_here[0, i, j] - i
-            for i in range(exclusive_pix, map_shape[1] - exclusive_pix):
-                for j in range(exclusive_pix, map_shape[2] - exclusive_pix):
-                    # 近傍のピクセルの平均値で更新する
-                    map_here[1, i, j] = round(np.mean(d_map[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + j
-                    map_here[0, i, j] = round(np.mean(d_map2[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + i
+
+            if self.filtering_mode == 'average':
+                for i in range(exclusive_pix, map_shape[1] - exclusive_pix):
+                    for j in range(exclusive_pix, map_shape[2] - exclusive_pix):
+                        # 近傍のピクセルの平均値で更新する
+                        map_here[1, i, j] = round(np.mean(d_map[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + j
+                        map_here[0, i, j] = round(np.mean(d_map2[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + i
+            elif self.filtering_mode == 'median':
+                for i in range(exclusive_pix, map_shape[1] - exclusive_pix):
+                    for j in range(exclusive_pix, map_shape[2] - exclusive_pix):
+                        # 近傍のピクセルの中央値で更新する
+                        map_here[1, i, j] = round(np.median(d_map[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + j
+                        map_here[0, i, j] = round(np.median(d_map2[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + i
         return map_here
 
 
