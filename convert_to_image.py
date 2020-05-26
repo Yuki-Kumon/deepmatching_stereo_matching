@@ -19,7 +19,7 @@ from absl import app, flags, logging
 from absl.flags import FLAGS
 
 flags.DEFINE_list('array_path', './output/igarss/raw/elevation.npy, ./output/igarss/raw/elevation2.npy', 'numpy array path list')
-flags.DEFINE_list('strech_range', '-1.5, 5.5, -5.5, 1.5', 'strech range for input array')  # sub_pixでは -5.5,1.5,-8,3 にしてコメントアウトを外す
+flags.DEFINE_list('strech_range', '-1.5, 5.5, -5.5, 1.5', 'strech range for input array')  # sub_pixでは -5.5,1.5,-8,3 にしてコメントアウトを外す(怪しい)
 flags.DEFINE_string('output_path', './output/igarss/raw/temp_out', 'output_path')
 flags.DEFINE_list('output_name', 'elevation.png, elevation2.png', 'output file name')
 

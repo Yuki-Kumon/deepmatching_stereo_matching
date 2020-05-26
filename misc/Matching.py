@@ -192,9 +192,9 @@ class Matching():
 
                     # diff = - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
                     diff = self._sub_pix_compute(r0, r1, r_)
-                    self.map[0, i, j] = i + d_x + diff
+                    self.map[0, i, j] = i - d_x + diff
                 except:
-                    self.map[0, i, j] = i + d_x
+                    self.map[0, i, j] = i - d_x
                 # 横について近傍の点から小数のずれを計算
                 d_y = j - self.map[1, i, j]
                 try:
@@ -204,9 +204,9 @@ class Matching():
 
                     # diff = - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
                     diff = self._sub_pix_compute(r0, r1, r_)
-                    self.map[1, i, j] = j + d_y + diff
+                    self.map[1, i, j] = j - d_y + diff
                 except:
-                    self.map[1, i, j] = j + d_y
+                    self.map[1, i, j] = j - d_y
 
     def __call__(self):
         '''
