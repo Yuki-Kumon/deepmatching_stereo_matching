@@ -18,5 +18,5 @@ def get_gradation_3d(width, height, start_list, stop_list, is_horizontal_list):
     return result
 
 
-array = get_gradation_3d(512, 64, (0, 0, 0), (160, 160, 160), (True, True, True))
+array = get_gradation_3d(512, 64, (64, 64, 64), (192, 192, 192), (True, True, True))
 Image.fromarray(np.uint8(array)).save('./output/igarss/bar.png')

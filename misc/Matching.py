@@ -31,6 +31,7 @@ class Matching():
         filtering_num=3,
         filtering_mode='median',
         sub_pix=True
+        # sub_pix_range=[-0.5, 0.5]
     ):
         try:
             Co_obj.co_map_list
@@ -51,6 +52,8 @@ class Matching():
         self.filtering = filtering
         self.filtering_mode = filtering_mode
         self.sub_pix = sub_pix
+
+        # self._sub_pix_range = sub_pix_range
 
     def _calc_near_match(self, co_map, p, p_dot):
         '''
@@ -145,6 +148,32 @@ class Matching():
             if self.N == 1:
                 break
 
+    """
+    @classmethod
+    def _sub_pix_thred(self, val):
+        '''
+        小数精度近似の足切り
+        '''
+        if val > self.sub_pix_range[0]:
+            val = self.sub_pix_range[0]
+        if val < self.sub_pix_range[1]:
+            val = self.sub_pix_range[1]
+
+        return val
+    """
+
+    @classmethod
+    def _sub_pix_compute(self, r0, r1, r_):
+        '''
+        二次関数近似の計算
+        二次関数近似を適用できない箇所には適用しない
+        '''
+        if r0 > r1 and r0 > r_:
+            diff = - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
+        else:
+            diff = 0
+        return diff
+
     def _sub_pix_cal(self):
         '''
         サブピクセル近似
@@ -160,7 +189,10 @@ class Matching():
                     r0 = co_map_last[i, j, corresponding[0], corresponding[1]]
                     r1 = co_map_last[i, j, corresponding[0] + 1, corresponding[1]]
                     r_ = co_map_last[i, j, corresponding[0] - 1, corresponding[1]]
-                    self.map[0, i, j] = i + d_x - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
+
+                    # diff = - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
+                    diff = self._sub_pix_compute(r0, r1, r_)
+                    self.map[0, i, j] = i + d_x + diff
                 except:
                     self.map[0, i, j] = i + d_x
                 # 横について近傍の点から小数のずれを計算
@@ -169,7 +201,10 @@ class Matching():
                     r0 = co_map_last[i, j, corresponding[0], corresponding[1]]
                     r1 = co_map_last[i, j, corresponding[0], corresponding[1] + 1]
                     r_ = co_map_last[i, j, corresponding[0], corresponding[1] - 1]
-                    self.map[1, i, j] = j + d_y - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
+
+                    # diff = - (r1 - r_) / (2 * (r1 + r_ - 2 * r0))
+                    diff = self._sub_pix_compute(r0, r1, r_)
+                    self.map[1, i, j] = j + d_y + diff
                 except:
                     self.map[1, i, j] = j + d_y
 
