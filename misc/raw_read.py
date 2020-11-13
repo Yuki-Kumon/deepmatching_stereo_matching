@@ -38,7 +38,7 @@ class RawRead():
         return c
 
     @classmethod
-    def read(self, path, size=(6000, 6000), rate=2):
+    def read(self, path, size=(6000, 6000), rate=1):
         '''
         read image
         '''
