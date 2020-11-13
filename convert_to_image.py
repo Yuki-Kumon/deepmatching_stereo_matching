@@ -18,9 +18,9 @@ from misc.image_cut_solver import ImageCutSolver
 from absl import app, flags, logging
 from absl.flags import FLAGS
 
-flags.DEFINE_list('array_path', './output/igarss/raw/elevation.npy, ./output/igarss/raw/elevation2.npy', 'numpy array path list')
+flags.DEFINE_list('array_path', './output/rssj69/raw/elevation.npy, ./output/rssj69/raw/elevation2.npy', 'numpy array path list')
 flags.DEFINE_list('strech_range', '-1.5, 5.5, -5.5, 1.5', 'strech range for input array')  # sub_pixでは -5.5,1.5,-8,3 にしてコメントアウトを外す(怪しい)
-flags.DEFINE_string('output_path', './output/igarss/raw/temp_out', 'output_path')
+flags.DEFINE_string('output_path', './output/rssj69/raw/', 'output_path')
 flags.DEFINE_list('output_name', 'elevation.png, elevation2.png', 'output file name')
 
 
@@ -52,6 +52,7 @@ def main(_argv):
         print('mean', np.mean(d_map))
 
         # save
+        print(os.path.join(FLAGS.output_path, FLAGS.output_name[i]))
         ImageCutSolver.image_save(os.path.join(FLAGS.output_path, FLAGS.output_name[i]), d_map, threshold=[0, 255])
 
 

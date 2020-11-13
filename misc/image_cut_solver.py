@@ -37,7 +37,8 @@ class ImageCutSolver():
         filtering=False,
         filtering_window_size=3,
         filtering_num=3,
-        filtering_mode='average'
+        filtering_mode='average',
+        is_color=False,
     ):
         """
         image_sizeとstride: pyramidの深さに寄与
@@ -67,6 +68,7 @@ class ImageCutSolver():
         self.filtering_window_size = filtering_window_size
         self.filtering_num = filtering_num
         self.filtering_mode = filtering_mode
+        self.is_color = is_color
 
         self.log_flg = True
 
@@ -116,7 +118,7 @@ class ImageCutSolver():
         """
         小画像に対しdeepmatchingを実施する
         """
-        co_cls = Correlation_map(solve_image, solve_template, window_size=self.window_size, feature_name=self.feature_name)
+        co_cls = Correlation_map(solve_image, solve_template, window_size=self.window_size, feature_name=self.feature_name, is_color=self.is_color)
         co_cls()
         if self.log_flg:
             print('complete to create multi-level correlation pyramid')

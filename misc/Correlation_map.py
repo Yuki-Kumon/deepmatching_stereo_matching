@@ -31,7 +31,7 @@ class Correlation_map():
     deepmatchingみたいにピラミッド状の特徴マップを作成する
     '''
 
-    def __init__(self, img, template, window_size=3, feature_name='cv2.TM_CCOEFF_NORMED'):
+    def __init__(self, img, template, window_size=3, feature_name='cv2.TM_CCOEFF_NORMED', is_color=False):
         if img.shape != template.shape:
             print('use same size images!(サイズが違うと悲しい気持ちになるので(そのうち対応したいですね))')
             sys.exit()
@@ -39,6 +39,8 @@ class Correlation_map():
         self.template = template
         self.window_size = window_size
         self.lam = 1.4  # rectification
+
+        self.is_color = is_color
 
         self.exclusive_pix = int((window_size - 1) / 2)
         self.image_size = [x for x in img.shape]
@@ -52,16 +54,29 @@ class Correlation_map():
         '''
         重なりありのatomic patchを作成する
         '''
-        atomic_patch = np.empty((
-                                self.image_size[0] - 2 * self.exclusive_pix,
-                                self.image_size[1] - 2 * self.exclusive_pix,
-                                self.window_size,
-                                self.window_size
-                                ))
-        for i in range(self.exclusive_pix, self.image_size[0] - self.exclusive_pix):
-            for j in range(self.exclusive_pix, self.image_size[1] - self.exclusive_pix):
-                atomic_patch[i - self.exclusive_pix, j - self.exclusive_pix] = \
-                    self.img[i - self.exclusive_pix:i + self.exclusive_pix + 1, j - self.exclusive_pix:j + self.exclusive_pix + 1]
+        if self.is_color:
+            atomic_patch = np.empty((
+                                    self.image_size[0] - 2 * self.exclusive_pix,
+                                    self.image_size[1] - 2 * self.exclusive_pix,
+                                    self.window_size,
+                                    self.window_size,
+                                    3,
+                                    ))
+            for i in range(self.exclusive_pix, self.image_size[0] - self.exclusive_pix):
+                for j in range(self.exclusive_pix, self.image_size[1] - self.exclusive_pix):
+                    atomic_patch[i - self.exclusive_pix, j - self.exclusive_pix] = \
+                        self.img[i - self.exclusive_pix:i + self.exclusive_pix + 1, j - self.exclusive_pix:j + self.exclusive_pix + 1]
+        else:
+            atomic_patch = np.empty((
+                                    self.image_size[0] - 2 * self.exclusive_pix,
+                                    self.image_size[1] - 2 * self.exclusive_pix,
+                                    self.window_size,
+                                    self.window_size
+                                    ))
+            for i in range(self.exclusive_pix, self.image_size[0] - self.exclusive_pix):
+                for j in range(self.exclusive_pix, self.image_size[1] - self.exclusive_pix):
+                    atomic_patch[i - self.exclusive_pix, j - self.exclusive_pix] = \
+                        self.img[i - self.exclusive_pix:i + self.exclusive_pix + 1, j - self.exclusive_pix:j + self.exclusive_pix + 1]
 
         # データ型を符号なし整数に変えておく
         self.atomic_patch = atomic_patch.astype(np.uint8)
