@@ -34,6 +34,7 @@ class ImageCutSolver():
         feature_name='cv2.TM_CCOEFF_NORMED', degree_map_mode=['elevation'],
         padding=False,
         sub_pix=True,
+        optim_mode=None,
         filtering=False,
         filtering_window_size=3,
         filtering_num=3,
@@ -125,7 +126,10 @@ class ImageCutSolver():
             print('pyramid level: {}, N={}'.format(co_cls.iteration, co_cls.N_map))
             self.log_flg = False
 
-        cls = Matching(co_cls, sub_pix=self.sub_pix, filtering=self.filtering, filter_window_size=self.filtering_window_size, filtering_num=self.filtering_num, filtering_mode=self.filtering_mode)
+        if self.sub_pix:
+            cls = Matching(co_cls, sub_pix=self.sub_pix, filtering=self.filtering, filter_window_size=self.filtering_window_size, filtering_num=self.filtering_num, filtering_mode=self.filtering_mode)
+        else:
+            cls = Matching(co_cls, optim_mode=self.optim_mode, filtering=self.filtering, filter_window_size=self.filtering_window_size, filtering_num=self.filtering_num, filtering_mode=self.filtering_mode)
         out = cls()
 
         del co_cls

@@ -30,7 +30,11 @@ class Matching():
         filtering=False,
         filtering_num=3,
         filtering_mode='median',
-        sub_pix=True
+        sub_pix=False,
+        optim_mode=None,  # 1だとsub_pix、2だとoptim_loop(単純平均)
+        loop_limit=20,
+        allowed_error=1000 * 1000 * 0.005,
+        gaus_alpha=0.008,
         # sub_pix_range=[-0.5, 0.5]
     ):
         try:
@@ -51,7 +55,16 @@ class Matching():
         self.filter_window_size = filter_window_size
         self.filtering = filtering
         self.filtering_mode = filtering_mode
-        self.sub_pix = sub_pix
+
+        self.optim_mode = 0
+        if sub_pix:
+            self.optim_mode = 1  # 単なるサブピクセル近似、後方互換性のため引数を残している
+        elif not sub_pix and optim_mode:
+            self.optim_mode = int(optim_mode)
+
+        self.loop_limit = loop_limit
+        self.allowed_error = allowed_error
+        self.gaus_alpha = gaus_alpha
 
         # self._sub_pix_range = sub_pix_range
 
@@ -208,6 +221,57 @@ class Matching():
                 except:
                     self.map[1, i, j] = j - d_y
 
+    def _sub_pix_optim(self):
+        '''
+        サブピクセル近似
+        卒論の手法を使う
+        小領域内のみでエネルギーを計算する
+        '''
+        img_dis = self.map[0]
+        for loop in range(self.loop_limit):
+            img_dis, error = self._optimize_loop_vertical(img_dis)
+            if(error < self.allowed_error):
+                break
+        self.map[0] = img_dis
+
+        img_dis = self.map[1]
+        for loop in range(self.loop_limit):
+            img_dis, error = self._optimize_loop_vertical(img_dis)
+            if(error < self.allowed_error):
+                break
+        self.map[1] = img_dis
+
+    def _optimize_loop(self, img_dis):
+        '''
+        卒論の手法で最適化を実施する
+        単純平均フィルター版
+        縦方向(第一引数)での最適化
+        窓のサイズは3×3で固定(sum_dの書き換えがめんどくさいため)
+        TODO: 卒論のコードはb_iの部分を間違えてるな！img_dis[i, j]→b(二次関数近似の答え)[i, j]にする！！！
+        '''
+        coefficient = self.obj.co_map_list[0]
+        alpha = self.gaus_alpha
+
+        error = 0
+        for i in range(1, img_dis.shape[0] - 1 - 1):
+            for j in range(1, img_dis.shape[1] - 1 - 1):
+                sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
+                a = coefficient[i, j]
+                d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
+                img_dis[i, j] = d_new
+        # 逆から
+        for i in range(1, img_dis.shape[0] - 1 - 1):
+            for j in range(1, img_dis.shape[1] - 1 - 1):
+                i = img_dis.shape[0] - i - 1
+                j = img_dis.shape[1] - j - 1
+                sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
+                a = coefficient[i, j]
+                d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
+                error += abs(img_dis[i, j] - d_new)
+                # print(str(img_dis[i, j]) + ',' + str(sum_d) + ',' + str(d_new) + ',' + str(coefficient[i, j]) + ',' + str(error))
+                img_dis[i, j] = d_new
+        return img_dis, error
+
     def __call__(self):
         '''
         multi-level correlation pyramidからマッチング計算を行う
@@ -216,8 +280,16 @@ class Matching():
         # print('complete to create initial matching map')
         self._calc_match()
         # print('complete backtracking')
+        '''
         if self.sub_pix:
             self._sub_pix_cal()
+        '''
+        if self.optim_mode == 1:
+            # サブピクセル近似
+            self._sub_pix_cal()
+        elif self.optim_mode == 2:
+            # 最適化(単純平均フィルター)
+            self._sub_pix_optim()
 
         return self.map
 
