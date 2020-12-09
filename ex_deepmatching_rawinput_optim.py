@@ -24,13 +24,15 @@ flags.DEFINE_string('image1_path', './data/newdata/KumonColor/ortho2b.raw', '')
 flags.DEFINE_string('image2_path', './data/newdata/KumonColor/ortho2a.raw', '')
 flags.DEFINE_list('rates', '1, 1', '')
 
+flags.DEFINE_bool('rotation', False, '')
+
 flags.DEFINE_list('cut_start', '2050, 1600', '')
 flags.DEFINE_list('cut_size', '1000, 1000', '')
 
 flags.DEFINE_integer('window_size', 15, '')
 flags.DEFINE_list('crop_size', '64, 64', '')
 flags.DEFINE_list('stride', '60, 60', '')
-flags.DEFINE_integer('optim_mode', 2, '')
+flags.DEFINE_integer('optim_mode', 0, '')
 flags.DEFINE_bool('filtering', True, '')
 flags.DEFINE_integer('filtering_window_size', 3, '')
 flags.DEFINE_integer('filtering_num', 4, '')
@@ -58,6 +60,11 @@ def main(_argv):
     image1 = image1[cut_start[0]:cut_start[0] + cut_size[0], cut_start[1]:cut_start[1] + cut_size[1]]
     image2 = image2[cut_start[0]:cut_start[0] + cut_size[0], cut_start[1]:cut_start[1] + cut_size[1]]
 
+    # rotation
+    if (FLAGS.rotation):
+        image1 = np.rot90(image1)
+        image2 = np.rot90(image2)
+
     # print raw image
     ImageCutSolver.image_save('./output/igarss/raw/here.png', image1, threshold=[0, 255])
     ImageCutSolver.image_save('./output/igarss/raw/here2.png', image2, threshold=[0, 255])
@@ -73,7 +80,8 @@ def main(_argv):
         filtering=FLAGS.filtering,
         filtering_window_size=FLAGS.filtering_window_size,
         filtering_num=FLAGS.filtering_num,
-        filtering_mode=FLAGS.filtering_mode
+        filtering_mode=FLAGS.filtering_mode,
+        is_color=False,
     )
 
     res_list, correlation_map = solver()

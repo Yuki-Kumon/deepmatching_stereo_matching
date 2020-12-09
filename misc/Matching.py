@@ -33,7 +33,7 @@ class Matching():
         sub_pix=False,
         optim_mode=None,  # 1だとsub_pix、2だとoptim_loop(単純平均)
         loop_limit=20,
-        allowed_error=1000 * 1000 * 0.005,
+        allowed_error=32 * 32 * 0.005,
         gaus_alpha=0.008,
         # sub_pix_range=[-0.5, 0.5]
     ):
@@ -227,21 +227,53 @@ class Matching():
         卒論の手法を使う
         小領域内のみでエネルギーを計算する
         '''
-        img_dis = self.map[0]
+        # img_disをサブピクセルの値に変換
+        self._sub_pix_cal()
+        # 縦方向
+        img_dis = self._map_to_diff_vertical(self.map[0])
+
+        for loop in range(self.loop_limit):
+            img_dis, error = self._optimize_loop_vertical(img_dis)
+            # print(error)
+            if(error < self.allowed_error):
+                break
+
+        self.map[0] = self._diff_to_map_vertical(img_dis)
+
+        # 横方向
+        img_dis = self._map_to_diff_horizontal(self.map[1])
         for loop in range(self.loop_limit):
             img_dis, error = self._optimize_loop_vertical(img_dis)
             if(error < self.allowed_error):
                 break
-        self.map[0] = img_dis
 
-        img_dis = self.map[1]
-        for loop in range(self.loop_limit):
-            img_dis, error = self._optimize_loop_vertical(img_dis)
-            if(error < self.allowed_error):
-                break
-        self.map[1] = img_dis
+        self.map[1] = self._diff_to_map_horizontal(img_dis)
 
-    def _optimize_loop(self, img_dis):
+    @staticmethod
+    def _map_to_diff_vertical(res_map):
+        diff = np.empty_like(res_map)
+        for i in range(res_map.shape[0]):
+            for j in range(res_map.shape[1]):
+                diff[i, j] = i - res_map[i, j]
+        return diff
+
+    @classmethod
+    def _map_to_diff_horizontal(self, res_map):
+        return self._map_to_diff_vertical(res_map.T)
+
+    @staticmethod
+    def _diff_to_map_vertical(diff_map):
+        res = np.empty_like(diff_map)
+        for i in range(diff_map.shape[0]):
+            for j in range(diff_map.shape[1]):
+                res[i, j] = i - diff_map[i, j]
+        return res
+
+    @classmethod
+    def _diff_to_map_horizontal(self, diff_map):
+        return self._diff_to_map_vertical(diff_map).T
+
+    def _optimize_loop_vertical(self, img_dis):
         '''
         卒論の手法で最適化を実施する
         単純平均フィルター版
@@ -255,22 +287,32 @@ class Matching():
         error = 0
         for i in range(1, img_dis.shape[0] - 1 - 1):
             for j in range(1, img_dis.shape[1] - 1 - 1):
-                sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
-                a = coefficient[i, j]
-                d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
-                img_dis[i, j] = d_new
+                corresponding = [int(i) for i in self.map[:2, i, j]]
+                try:
+                    sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
+                    a = coefficient[i, j, corresponding[0], corresponding[1]]
+                    d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
+                    img_dis[i, j] = d_new
+                except:
+                    img_dis[i, j] = img_dis[i, j]
         # 逆から
         for i in range(1, img_dis.shape[0] - 1 - 1):
             for j in range(1, img_dis.shape[1] - 1 - 1):
                 i = img_dis.shape[0] - i - 1
                 j = img_dis.shape[1] - j - 1
-                sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
-                a = coefficient[i, j]
-                d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
-                error += abs(img_dis[i, j] - d_new)
-                # print(str(img_dis[i, j]) + ',' + str(sum_d) + ',' + str(d_new) + ',' + str(coefficient[i, j]) + ',' + str(error))
-                img_dis[i, j] = d_new
+                corresponding = [int(i) for i in self.map[:2, i, j]]
+                try:
+                    sum_d = img_dis[i, j - 1] + img_dis[i, j + 1] + img_dis[i - 1, j] + img_dis[i + 1, j]
+                    a = coefficient[i, j, corresponding[0], corresponding[1]]
+                    d_new = (-a * img_dis[i, j] + alpha * sum_d) / (-a + 4.0 * alpha)
+                    error += abs(img_dis[i, j] - d_new)
+                    img_dis[i, j] = d_new
+                except:
+                    img_dis[i, j] = img_dis[i, j]
         return img_dis, error
+
+    def _optimize_loop_horizontal(self, img_dis):
+        return self._optimize_loop_vertical(img_dis)
 
     def __call__(self):
         '''

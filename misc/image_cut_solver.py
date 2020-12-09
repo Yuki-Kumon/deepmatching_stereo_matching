@@ -33,7 +33,7 @@ class ImageCutSolver():
         image_size=[32, 32], stride=[32, 32], window_size=5,
         feature_name='cv2.TM_CCOEFF_NORMED', degree_map_mode=['elevation'],
         padding=False,
-        sub_pix=True,
+        sub_pix=False,
         optim_mode=None,
         filtering=False,
         filtering_window_size=3,
@@ -65,6 +65,7 @@ class ImageCutSolver():
 
         self.padding = padding
         self.sub_pix = sub_pix
+        self.optim_mode = optim_mode
         self.filtering = filtering
         self.filtering_window_size = filtering_window_size
         self.filtering_num = filtering_num
