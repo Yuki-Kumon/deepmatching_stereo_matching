@@ -16,10 +16,11 @@ from sklearn.neighbors import NearestNeighbors
 
 class RDF:
 
-    def __init__(self, max_filter_size=9, n_neighbors=10, th=5):
+    def __init__(self, max_filter_size=9, n_neighbors=10, th_duplicate=5, th_rdf=50):
         self.max_filter_size = max_filter_size
         self.n_neighbors = n_neighbors
-        self.th = th
+        self.th_duplicate = th_duplicate
+        self.th_rdf = th_rdf
 
     def _maxFilter(self, image):
         return ndi.maximum_filter(image, size=self.max_filter_size, mode='constant')
@@ -36,7 +37,7 @@ class RDF:
         # 閾値以下の近接点との重心を計算。
         center_list = []
         for d, i in zip(distances, indices):
-            i = i[np.where(d < self.th)]
+            i = i[np.where(d < self.th_duplicate)]
             pts = pts_list.T[i]
             center = np.mean(pts, axis=0)
             center_list.append(center)
@@ -46,7 +47,18 @@ class RDF:
         center_list = np.unique(center_list, axis=0)
         center_list = center_list.T
 
-        return center_list
+        return center_list, distances, indices
+
+    def _computeRdf(self, distances, indices):
+        dist_list = []
+        for d, i in zip(distances, indices):
+            d = d[np.where(d < self.th_rdf)][1:]
+            dist_list.extend(d)
+        dist_list = np.array(dist_list)
+        dist_hist = np.histogram(dist_list, range=(0, self.th_rdf), bins=self.th_rdf)
+        rdf = dist_hist[0] / (4 * np.pi * np.power(dist_hist[1][1:], 2))
+
+        return rdf
 
 
 if __name__ == '__main__':
@@ -79,8 +91,13 @@ if __name__ == '__main__':
     """
     pts_list = cls._computeParticle(image1, image1_max)
     print(len(pts_list[0]))
-    pts_list = cls._removeDuplicates(pts_list)
+    pts_list, dis, idxs = cls._removeDuplicates(pts_list)
     print(len(pts_list[0]))
+    rdfs = cls._computeRdf(dis, idxs)
+    print(rdfs)
+    plt.plot(rdfs)
+    plt.savefig('./hoge.png')
+    plt.clf()
     plt.gray()
     plt.imshow(image1)
     plt.scatter(pts_list[1], pts_list[0], s=3, c='red', alpha=0.7)
