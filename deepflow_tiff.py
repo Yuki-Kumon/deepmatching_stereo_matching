@@ -5,6 +5,7 @@ import numpy as np
 
 # from misc.raw_read import RawRead
 # from misc.file_util import FileUtil
+from misc.visualizer import Visualizer
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -15,6 +16,8 @@ if __name__ == '__main__':
     parser.add_argument('--output', default='./output/extra/kunlun_deepflow')
     parser.add_argument('--cut_start', nargs='+', default=[2800, 2100], type=int)
     parser.add_argument('--cut_size', nargs='+', default=[1000, 1000], type=int)
+
+    parser.add_argument('--strech_range', nargs='+', default=[-1.5, 5.5, -5.5, 1.5], type=float)
 
     args = parser.parse_args()
 
@@ -37,4 +40,6 @@ if __name__ == '__main__':
 
     # 画像にして出力
     for idx in range(2):
-        cv2.imwrite(os.path.join(args.output, 'flow_' + str(idx) + '.png'), (flow[:, :, idx] * -100).astype('uint8'))
+        range = range = [float(x) for x in args.strech_range[2 * idx: 2 * idx + 2]]
+        flow_here = Visualizer.strech_for_write(flow[:, :, idx] * -1, range=range)
+        cv2.imwrite(os.path.join(args.output, 'flow_' + str(idx) + '.png'), flow_here)
