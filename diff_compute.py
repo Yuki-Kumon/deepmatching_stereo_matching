@@ -15,11 +15,13 @@ import numpy as np
 
 # file1 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/igarss/raw/_for_final/s=6,g=15,nofilter/elevation2.png'
 # file1 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/igarss/raw/_for_final/s=6,g=15,filtering_num=4,window=3,median/elevation2.png'
-file1 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/差し替え用の画像/setup1_elevation2.png'
+# file1 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/差し替え用の画像/setup1_elevation2.png'
+file1 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/差し替え/images/s=15_g=6_elevation2.png'
 # file2 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/igarss/raw/temp_out/elevation2.png'
 # file2 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/igarss/raw/_for_final/s=6,g=15,filtering_num=4,window=3/elevation2.png'
-file2 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/差し替え用の画像/nofilter_elevation2.png'
-output_path = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/rgb_concated.png'
+# file2 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/差し替え用の画像/nofilter_elevation2.png'
+file2 = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/差し替え/images/s=15_g=6_nofilter_elevation2.png'
+output_path = '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/output/rssj69/差し替え/images/rgb_concated.png'
 
 im1 = cv2.imread(file1, cv2.IMREAD_GRAYSCALE)
 im2 = cv2.imread(file2, cv2.IMREAD_GRAYSCALE)

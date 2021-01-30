@@ -15,14 +15,19 @@ from absl import app, flags, logging
 from absl.flags import FLAGS
 
 from misc.image_cut_solver import ImageCutSolver
-from misc.raw_read import RawRead
+# from misc.raw_read import RawRead
+import cv2
+import os
 
 from misc.file_util import FileUtil
 
 
-flags.DEFINE_string('image1_path', './data/newdata/KumonColor/ortho2b.raw', '')
-flags.DEFINE_string('image2_path', './data/newdata/KumonColor/ortho2a.raw', '')
+# flags.DEFINE_string('image1_path', './data/newdata/KumonColor/ortho2b.raw', '')
+# flags.DEFINE_string('image2_path', './data/newdata/KumonColor/ortho2a.raw', '')
+flags.DEFINE_string('image', '/Users/yuki_kumon/Documents/python/deepmatching_stereo_matching/data/other_scene/Ethiopia(after-before-X).tif', '')
 flags.DEFINE_list('rates', '1, 1', '')
+
+flags.DEFINE_string('output_root', './output/igarss/raw/', '')
 
 flags.DEFINE_bool('rotation', False, '')
 
@@ -53,15 +58,20 @@ def main(_argv):
 
     DEGREE_NAMES = ['elevation', 'elevation2']
 
-    FileUtil.mkdir('./output/rssj69/raw/')
+    FileUtil.mkdir(FLAGS.output_root)
 
     # read image
-    image1 = RawRead.read(FLAGS.image1_path, rate=rates[0])
-    image2 = RawRead.read(FLAGS.image2_path, rate=rates[1])
+    # image1 = RawRead.read(FLAGS.image1_path, rate=rates[0])
+    # image2 = RawRead.read(FLAGS.image2_path, rate=rates[1])
+    image = cv2.imread(FLAGS.image)
+    image1 = image[:, :, 1]
+    image2 = image[:, :, 2]
+    co_image = image[:, :, 0]
 
     # crop images
     image1 = image1[cut_start[0]:cut_start[0] + cut_size[0], cut_start[1]:cut_start[1] + cut_size[1]]
     image2 = image2[cut_start[0]:cut_start[0] + cut_size[0], cut_start[1]:cut_start[1] + cut_size[1]]
+    co_image = co_image[cut_start[0]:cut_start[0] + cut_size[0], cut_start[1]:cut_start[1] + cut_size[1]]
 
     # rotation
     if (FLAGS.rotation):
@@ -69,8 +79,9 @@ def main(_argv):
         image2 = np.rot90(image2)
 
     # print raw image
-    ImageCutSolver.image_save('./output/igarss/raw/here.png', image1, threshold=[0, 255])
-    ImageCutSolver.image_save('./output/igarss/raw/here2.png', image2, threshold=[0, 255])
+    ImageCutSolver.image_save(os.path.join(FLAGS.output_root, 'here.png'), image1, threshold=[0, 255])
+    ImageCutSolver.image_save(os.path.join(FLAGS.output_root, 'here2.png'), image2, threshold=[0, 255])
+    ImageCutSolver.image_save(os.path.join(FLAGS.output_root, 'here_co.png'), co_image, threshold=[0, 255])
 
     # execute deepmatching
     solver = ImageCutSolver(
@@ -91,8 +102,8 @@ def main(_argv):
 
     # save computation result as numpy array
     for i, name in enumerate(DEGREE_NAMES):
-        np.save('./output/rssj69/raw/' + name, res_list[i])
-    np.save('./output/rssj69/raw/' + 'correlation', correlation_map)
+        np.save(os.path.join(FLAGS.output_root, name), res_list[i])
+    np.save(os.path.join(FLAGS.output_root, 'correlation'), correlation_map)
 
 
 if __name__ == '__main__':

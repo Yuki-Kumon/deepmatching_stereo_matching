@@ -26,6 +26,7 @@ class Matching():
     def __init__(
         self,
         Co_obj=None,
+        extrapolation=True,
         filter_window_size=3,
         filtering=False,
         filtering_num=3,
@@ -65,6 +66,8 @@ class Matching():
         self.loop_limit = loop_limit
         self.allowed_error = allowed_error
         self.gaus_alpha = gaus_alpha
+
+        self.extrapolation = extrapolation
 
         # self._sub_pix_range = sub_pix_range
 
@@ -322,6 +325,9 @@ class Matching():
         # print('complete to create initial matching map')
         self._calc_match()
         # print('complete backtracking')
+        # 外挿
+        if self.extrapolation:
+            self.map = self._pix_extrapolation(self.map)
         '''
         if self.sub_pix:
             self._sub_pix_cal()
@@ -367,6 +373,38 @@ class Matching():
                         map_here[1, i, j] = round(np.median(d_map[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + j
                         map_here[0, i, j] = round(np.median(d_map2[i - exclusive_pix:i + exclusive_pix + 1, j - exclusive_pix:j + exclusive_pix + 1])) + i
         return map_here
+
+    def _pix_extrapolation(self, map):
+        """
+        外周の1ピクセルを外挿する
+        """
+        map_shape = map.shape
+        # 移動量マップ用の配列
+        d_map = np.empty((map_shape[1], map_shape[1])).astype('int64')
+        d_map2 = np.empty((map_shape[1], map_shape[1])).astype('int64')
+        for i in range(d_map.shape[0]):
+            for j in range(d_map.shape[1]):
+                # 移動量マップへ変換
+                d_map[i, j] = map[1, i, j] - j
+                d_map2[i, j] = map[0, i, j] - i
+        # 外挿
+        d_map[:, 0] = d_map[:, 1]
+        d_map[:, -1] = d_map[:, -2]
+        d_map[0, :] = d_map[1, :]
+        d_map[-1, :] = d_map[-2, :]
+        d_map2[:, 0] = d_map2[:, 1]
+        d_map2[:, -1] = d_map2[:, -2]
+        d_map2[0, :] = d_map2[1, :]
+        d_map2[-1, :] = d_map2[-2, :]
+
+        # 元に戻す
+        for i in range(d_map.shape[0]):
+            for j in range(d_map.shape[1]):
+                # 移動量マップへ変換
+                map[1, i, j] = d_map[i, j] + j
+                map[0, i, j] = d_map2[i, j] + i
+
+        return map
 
 
 class Zero_padding(nn.Module):

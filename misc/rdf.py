@@ -5,7 +5,7 @@
 Author :
     Yuki Kumon
 Last Update :
-    2020-12-28
+    2020-12-29
 """
 
 
@@ -16,7 +16,7 @@ from sklearn.neighbors import NearestNeighbors
 
 class RDF:
 
-    def __init__(self, max_filter_size=9, n_neighbors=10, th_duplicate=5, th_rdf=50):
+    def __init__(self, max_filter_size=15, n_neighbors=10, th_duplicate=10, th_rdf=50):
         self.max_filter_size = max_filter_size
         self.n_neighbors = n_neighbors
         self.th_duplicate = th_duplicate
@@ -48,6 +48,9 @@ class RDF:
         center_list = center_list.T
 
         return center_list, distances, indices
+
+    def _recomputeDistance(self, center_list):
+        pass
 
     def _computeRdf(self, distances, indices):
         dist_list = []
@@ -90,11 +93,12 @@ if __name__ == '__main__':
     fig = plt.figure(dpi=150, facecolor='white')
     """
     pts_list = cls._computeParticle(image1, image1_max)
+    print(pts_list)
     print(len(pts_list[0]))
     pts_list, dis, idxs = cls._removeDuplicates(pts_list)
     print(len(pts_list[0]))
     rdfs = cls._computeRdf(dis, idxs)
-    print(rdfs)
+    print(np.argmax(rdfs))
     plt.plot(rdfs)
     plt.savefig('./hoge.png')
     plt.clf()

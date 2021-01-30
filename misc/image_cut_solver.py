@@ -9,6 +9,7 @@ Last Update :
 """
 
 
+import cv2
 import numpy as np
 from tqdm import trange
 
@@ -183,6 +184,14 @@ class ImageCutSolver():
             """
             print(self.stride[0] * i_here, self.stride[0] * i_here + self.image_size[0],
             self.stride[1] * j_here, self.stride[1] * j_here + self.image_size[1])
+            """
+
+            """
+            cv2.imwrite('./output/rssj69/raw/test/' + str(idx) + '.png', (self.d_map[
+                0,
+                self.stride[0] * i_here:self.stride[0] * i_here + self.image_size[0],
+                self.stride[1] * j_here:self.stride[1] * j_here + self.image_size[1]
+            ] * 100).astype('uint8'))
             """
 
     def __call__(self):
